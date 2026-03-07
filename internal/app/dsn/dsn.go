@@ -12,7 +12,7 @@ func FromEnv() string {
 	}
 	port := os.Getenv("DB_PORT")
 	user := os.Getenv("DB_USER")
-	pass := os.Getenv("DB_PASS")
+	pass := os.Getenv("DB_PASSWORD")
 	dbname := os.Getenv("DB_NAME")
 	// И вот мы возвращаем dsn, который необходим для подключения к БД
 	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, pass, dbname)
