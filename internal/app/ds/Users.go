@@ -1,8 +1,14 @@
 package ds
 
-type Users struct {
+type User struct {
 	ID          uint   `gorm:"primary_key" json:"id"`
+	Username    string `json:"username"`
 	Login       string `gorm:"type:varchar(25);unique;not null" json:"login"`
 	Password    string `gorm:"type:varchar(100);not null" json:"-"`
 	IsModerator bool   `gorm:"type:boolean;default:false" json:"is_moderator"`
+}
+
+type UserMethanes struct {
+	User     User
+	Methanes []Methane `json:"methanes"`
 }

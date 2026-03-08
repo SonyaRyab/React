@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ .Name }} - Реагент</title>
+    <link rel="stylesheet" href="/styles/reagent_style.css">
+</head>
+<body>
+<header>
+    <div class="title-container">
+        <span class="calculator-title">Калькулятор синтеза метана (Реакция Сабатье)</span>
+    </div>
+    <div class="home-link">
+        <a href="/reagents" class="calculate-btn">Домой</a>
+    </div>
+</header>
+
+<main class="order-main">
+    <div class="wibes-card">
+        <div class="wibes-header">
+            <div class="wibes-avatar">
+                <img src="{{ .Img }}" alt="{{ .Name }}">
+            </div>
+            <div class="wibes-title-info">
+                <div class="wibes-name">{{ .Name }}</div>
+                <div class="wibes-formula">{{ .Formula }}</div>
+            </div>
+        </div>
+
+        <div class="wibes-video-wrapper">
+            <video
+                class="wibes-video"
+                autoplay
+                muted
+                loop
+                playsinline
+                poster="{{ .Img }}"
+            >
+                <source src="{{ .Video }}" type="video/mp4">
+            </video>
+
+            <div class="wibes-actions">
+                <div class="wibes-action-btn" onclick="document.getElementById('methane-form-{{ .ID }}').submit(); calculateYield()">
+                    <span class="wibes-icon">🔥</span>
+                    <span class="wibes-count">В корзину</span>
+                    <form id="methane-form-{{ .ID }}" action="/add-to-methane" method="POST">
+                        <input type="hidden" name="reagent_id" value="{{ .ID }}">
+                        <input type="hidden" name="quantity" value="1">
+                    </form>
+                </div>
+
+                <div class="wibes-action-btn" onclick="document.getElementById('addForm').submit()">
+                    <span class="wibes-icon">⚗️</span>
+                    <span class="wibes-count">В реакцию</span>
+                </div>
+
+                <div class="wibes-action-btn" onclick="showConditions()">
+                    <span class="wibes-icon">🌡️</span>
+                    <span class="wibes-count">Условия</span>
+                </div>
+            </div>
+
+            <div class="wibes-video-info">
+                <div class="wibes-desc">{{ .Description }}</div>
+                <div class="wibes-stats">
+                    <span>М: {{ .MolarMass }} г/моль</span>
+                    {{ if eq .Formula "H2" }}<span>Восстановитель</span>{{ end }}
+                    {{ if eq .Formula "CO2" }}<span>Исходное вещество</span>{{ end }}
+                    {{ if eq .Formula "Ni" }}<span>Катализатор</span>{{ end }}
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

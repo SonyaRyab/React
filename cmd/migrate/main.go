@@ -18,9 +18,26 @@ func main() {
 
 	// Migrate the schema
 	err = db.AutoMigrate(
-		&ds.Stock{},
+		&ds.Methane{},
+		&ds.MethaneReagent{},
+		&ds.Reagent{},
+		&ds.User{},
 	)
 	if err != nil {
 		panic("cant migrate db")
+	}
+
+	// Check if there is a default user row and add one if it's missing
+	var count int64
+
+	db.Model(&ds.User{}).Where("login = ?", "test").Count(&count)
+	if count == 0 {
+		defaultUser := ds.User{Username: "test", Login: "test", Password: "test123", IsModerator: false}
+
+		err := db.Create(&defaultUser).Error
+
+		if err != nil {
+			panic("error creating default user")
+		}
 	}
 }
