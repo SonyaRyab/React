@@ -2,7 +2,8 @@ package config
 
 import (
 	"os"
-
+	"time"
+	"github.com/golang-jwt/jwt"
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -11,7 +12,24 @@ import (
 type Config struct {
 	ServiceHost string
 	ServicePort int
+	Redis RedisConfig
 }
+
+type RedisConfig struct {
+	Host        string
+	Password    string
+	Port        int
+	User        string
+	DialTimeout time.Duration
+	ReadTimeout time.Duration
+}
+
+const (
+   envRedisHost = "REDIS_HOST"
+   envRedisPort = "REDIS_PORT"
+   envRedisUser = "REDIS_USER"
+   envRedisPass = "REDIS_PASSWORD"
+)
 
 func NewConfig() (*Config, error) {
 	var err error
@@ -26,7 +44,6 @@ func NewConfig() (*Config, error) {
 	viper.SetConfigType("toml")
 	viper.AddConfigPath("config")
 	viper.AddConfigPath(".")
-	viper.WatchConfig()
 
 	err = viper.ReadInConfig()
 	if err != nil {
@@ -38,6 +55,24 @@ func NewConfig() (*Config, error) {
 	// конвертируем и затем кладем в нашу переменную cfg
 	if err != nil {
 		return nil, err
+	}
+
+	cfg.Redis.Host = os.Getenv(envRedisHost)
+	cfg.Redis.User = os.Getenv(envRedisUser)
+	cfg.Redis.Password = os.Getenv(envRedisPass)
+
+	if os.Getenv(envRedisPort) != "" {
+		cfg.Redis.Port, err = strconv.Atoi(os.Getenv(envRedisPort))
+		if err != nil {
+			return nil, fmt.Errorf("redis port must be int value: %w", err)
+		}
+	}
+
+	if cfg.Redis.Host == "" {
+		cfg.Redis.Host = "127.0.0.1"
+	}
+	if cfg.Redis.Port == 0 {
+		cfg.Redis.Port = 6379
 	}
 
 	log.Info("config parsed")

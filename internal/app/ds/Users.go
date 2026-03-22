@@ -1,11 +1,17 @@
 package ds
 
+import (
+	"lab4/internal/app/role"
+	"github.com/google/uuid"
+)
+
 type User struct {
-	ID          uint   `gorm:"primary_key" json:"id"`
-	Username    string `json:"username"`
-	Login       string `gorm:"type:varchar(25);unique;not null" json:"login"`
-	Password    string `gorm:"type:varchar(100);not null" json:"-"`
-	IsModerator bool   `gorm:"type:boolean;default:false" json:"is_moderator"`
+	ID   uint      `gorm:"primaryKey" json:"id"`
+	UUID uuid.UUID `gorm:"type:uuid"`
+	Login    string    `gorm:"type:varchar(50);uniqueIndex;not null" json:"login"`
+	Name string    `json:"name"`
+	Role role.Role `sql:"type:string;"`
+	PassHash string    `gorm:"type:varchar(255);not null" json:"-"`
 }
 
 type UserMethanes struct {
