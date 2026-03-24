@@ -14,7 +14,7 @@ import (
 // @Param search query string false "Поиск"
 // @Success 200 {array} ds.Reagent
 // @Failure 500 {object} map[string]interface{}
-// @Router /reagents [get]
+// @Router /api/reagents [get]
 func (a *Application) GetReagentsPublic(gCtx *gin.Context) {
 	search := gCtx.Query("search")
 

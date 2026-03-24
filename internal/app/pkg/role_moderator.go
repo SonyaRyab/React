@@ -10,13 +10,13 @@ func (a *Application) RequireModerator() gin.HandlerFunc {
 	return func(gCtx *gin.Context) {
 		roleAny, exists := gCtx.Get("user_role")
 		if !exists {
-			gCtx.AbortWithStatus(http.StatusUnauthorized)
+			gCtx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 			return
 		}
 
 		currentRole := roleAny.(role.Role)
 		if currentRole != role.Manager && currentRole != role.Admin {
-			gCtx.AbortWithStatus(http.StatusForbidden)
+			gCtx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 			return
 		}
 

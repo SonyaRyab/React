@@ -50,6 +50,31 @@ info:
   title: BITOP
   version: "1.0"
 paths:
+  /api/reagents:
+    get:
+      description: Публичный метод чтения данных
+      parameters:
+      - description: Поиск
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ds.Reagent'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Список реагентов
+      tags:
+      - reagents
   /auth/login:
     post:
       consumes:
@@ -88,30 +113,6 @@ paths:
       summary: Вход пользователя
       tags:
       - auth
-  /auth/logout:
-    post:
-      description: Удаляет серверную сессию из Redis и очищает cookie
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Выход пользователя
-      tags:
-      - auth
   /auth/register:
     post:
       consumes:
@@ -136,6 +137,11 @@ paths:
           schema:
             additionalProperties: true
             type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties: true
+            type: object
         "500":
           description: Internal Server Error
           schema:
@@ -144,32 +150,12 @@ paths:
       summary: Регистрация пользователя
       tags:
       - auth
-  /reagents:
-    get:
-      description: Публичный метод чтения данных
-      parameters:
-      - description: Поиск
-        in: query
-        name: search
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/ds.Reagent'
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Список реагентов
-      tags:
-      - reagents
 schemes:
 - https
 - http
+securityDefinitions:
+  SessionCookieAuth:
+    in: cookie
+    name: session_id
+    type: apiKey
 swagger: "2.0"

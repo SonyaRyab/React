@@ -21,6 +21,11 @@ import (
 // @schemes https http
 // @BasePath /
 
+// @securityDefinitions.apikey SessionCookieAuth
+// @in cookie
+// @name session_id
+
+
 func main() {
 	log.Println("Initializing server")
 	application, err := app.New(context.Background())

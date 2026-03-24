@@ -1,9 +1,9 @@
 package app
 
 import (
-	"crypto/sha1"
-	"encoding/hex"
 	"encoding/json"
+	"errors"
+	"strings"
 	"net/http"
 	"time"
 
@@ -13,6 +13,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type loginReq struct {
@@ -30,10 +32,13 @@ type registerResp struct {
 	Ok bool `json:"ok"`
 }
 
-func generateHashString(s string) string {
-	h := sha1.New()
-	h.Write([]byte(s))
-	return hex.EncodeToString(h.Sum(nil))
+func hashPassword(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(hash), err
+}
+
+func checkPassword(hash string, password string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) == nil
 }
 
 // Register godoc
@@ -45,6 +50,7 @@ func generateHashString(s string) string {
 // @Param input body registerReq true "Данные регистрации"
 // @Success 200 {object} registerResp
 // @Failure 400 {object} map[string]interface{}
+// @Failure 409 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
 // @Router /auth/register [post]
 func (a *Application) Register(gCtx *gin.Context) {
@@ -60,13 +66,38 @@ func (a *Application) Register(gCtx *gin.Context) {
 		return
 	}
 
-	err := a.repo.Register(&ds.User{
+	req.Login = strings.TrimSpace(req.Login)
+	req.Name = strings.TrimSpace(req.Name)
+
+	if req.Login == "" || req.Name == "" || req.Pass == "" {
+		gCtx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "login, name, pass are required"})
+		return
+	}
+
+	_, err := a.repo.GetUserByLogin(req.Login)
+	if err == nil {
+		gCtx.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": "login already exists"})
+		return
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		gCtx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "cannot check login uniqueness"})
+		return
+	}
+
+	passHash, err := hashPassword(req.Pass)
+	if err != nil {
+		gCtx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "cannot hash password"})
+		return
+	}
+
+	err = a.repo.Register(&ds.User{
 		UUID:     uuid.New(),
 		Login:    req.Login,
 		Name:     req.Name,
 		Role:     role.Researcher,
-		PassHash: generateHashString(req.Pass),
+		PassHash: passHash,
 	})
+
 	if err != nil {
 		gCtx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -95,6 +126,8 @@ func (a *Application) Login(gCtx *gin.Context) {
 		return
 	}
 
+	req.Login = strings.TrimSpace(req.Login)
+
 	if req.Login == "" || req.Password == "" {
 		gCtx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "login and password are required"})
 		return
@@ -106,7 +139,7 @@ func (a *Application) Login(gCtx *gin.Context) {
 		return
 	}
 
-	if user.PassHash != generateHashString(req.Password) {
+	if !checkPassword(user.PassHash, req.Password) {
 		gCtx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 		return
 	}
@@ -151,6 +184,8 @@ func (a *Application) Login(gCtx *gin.Context) {
 // @Failure 401 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
 // @Router /auth/logout [post]
+// @Security SessionCookieAuth
+
 func (a *Application) Logout(gCtx *gin.Context) {
 	sessionID, err := gCtx.Cookie("session_id")
 	if err != nil {

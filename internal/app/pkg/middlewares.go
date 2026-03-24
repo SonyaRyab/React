@@ -10,13 +10,13 @@ func (a *Application) WithSessionAuth(assignedRoles ...role.Role) gin.HandlerFun
 	return func(gCtx *gin.Context) {
 		sessionID, err := gCtx.Cookie("session_id")
 		if err != nil || sessionID == "" {
-			gCtx.AbortWithStatus(http.StatusUnauthorized)
+			gCtx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 			return
 		}
 
 		sess, err := a.redis.GetSession(gCtx.Request.Context(), sessionID)
 		if err != nil {
-			gCtx.AbortWithStatus(http.StatusUnauthorized)
+			gCtx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid session"})
 			return
 		}
 
@@ -36,6 +36,6 @@ func (a *Application) WithSessionAuth(assignedRoles ...role.Role) gin.HandlerFun
 			}
 		}
 
-		gCtx.AbortWithStatus(http.StatusForbidden)
+		gCtx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 	}
 }

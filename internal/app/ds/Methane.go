@@ -8,10 +8,10 @@ import (
 type Methane struct {
 	ID           uint             `gorm:"primaryKey" json:"id"`
 	Name         string           `gorm:"type:varchar(100);not null" json:"name"`
-	Status       string           `gorm:"type:varchar(20)"`
+	Status       string           `gorm:"type:varchar(20)" json:"status"`
 	DateCreate   time.Time        `json:"date_create"`
-	DateForm     time.Time        `gorm:"default:null" json:"date_update"`
-	DateFinish   time.Time        `gorm:"default:null" json:"date_finish"`
+	DateForm     *time.Time        `gorm:"default:null" json:"date_update"`
+	DateFinish   *time.Time        `gorm:"default:null" json:"date_finish"`
 	AdminID      uint             `gorm:"not null" json:"-"`
 	ModeratorID  *uint            `json:"-"`
 	Temperature  float64          `gorm:"type:decimal(6,2)" json:"temperature"`
@@ -27,7 +27,7 @@ type MethaneListSerializer struct {
 	Name         string    `json:"name"`
 	Status       string    `json:"status"`
 	DateCreate   time.Time `json:"date_create"`
-	DateForm     time.Time `json:"date_form"`
+	DateForm     *time.Time `json:"date_form"`
 	ReagentCount int64     `json:"reagent_count"`
 }
 

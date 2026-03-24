@@ -22,6 +22,44 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/reagents": {
+            "get": {
+                "description": "Публичный метод чтения данных",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reagents"
+                ],
+                "summary": "Список реагентов",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Поиск",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ds.Reagent"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "Создаёт серверную сессию в Redis и устанавливает cookie session_id",
@@ -56,41 +94,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/logout": {
-            "post": {
-                "description": "Удаляет серверную сессию из Redis и очищает cookie",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "Выход пользователя",
-                "responses": {
-                    "200": {
-                        "description": "OK",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -151,42 +154,11 @@ const docTemplate = `{
                             "additionalProperties": true
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "409": {
+                        "description": "Conflict",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/reagents": {
-            "get": {
-                "description": "Публичный метод чтения данных",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "reagents"
-                ],
-                "summary": "Список реагентов",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Поиск",
-                        "name": "search",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/ds.Reagent"
-                            }
                         }
                     },
                     "500": {
@@ -259,6 +231,13 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "SessionCookieAuth": {
+            "type": "apiKey",
+            "name": "session_id",
+            "in": "cookie"
         }
     }
 }`

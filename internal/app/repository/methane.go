@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -12,6 +13,70 @@ import (
 	"net/http"
 	"strconv"
 )
+
+func (r *Repository) GetMethaneByID(id uint) (*ds.Methane, error) {
+	var methane ds.Methane
+	err := r.db.Preload("Admin").Preload("Moderator").Where("id = ?", id).First(&methane).Error
+	if err != nil {
+		return nil, err
+	}
+	return &methane, nil
+}
+
+func (r *Repository) FormMethaneByOwner(id uint, userID uint, updates map[string]interface{}) error {
+	var methane ds.Methane
+	err := r.db.Where("id = ?", id).First(&methane).Error
+	if err != nil {
+		return err
+	}
+
+	if methane.AdminID != userID {
+		return errors.New("forbidden")
+	}
+
+	if methane.Status != "черновик" {
+		return errors.New("only draft methane can be formed")
+	}
+
+	delete(updates, "id")
+	delete(updates, "admin_id")
+	delete(updates, "moderator_id")
+	delete(updates, "status")
+	delete(updates, "date_create")
+	delete(updates, "date_form")
+	delete(updates, "date_finish")
+
+	now := time.Now()
+	updates["status"] = "сформирована"
+	updates["date_form"] = &now
+
+	return r.db.Model(&ds.Methane{}).Where("id = ?", id).Updates(updates).Error
+}
+
+func (r *Repository) CompleteMethane(id uint, moderatorID uint, status string) error {
+	if status != "завершена" && status != "отклонена" {
+		return fmt.Errorf("invalid completion status")
+	}
+
+	var methane ds.Methane
+	err := r.db.Where("id = ?", id).First(&methane).Error
+	if err != nil {
+		return err
+	}
+
+	if methane.Status != "сформирована" {
+		return fmt.Errorf("only formed methane can be completed")
+	}
+
+	now := time.Now()
+	return r.db.Model(&ds.Methane{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"status":       status,
+		"moderator_id": moderatorID,
+		"date_finish":  &now,
+	}).Error
+}
+
+// @Security SessionCookieAuth
 
 func (r *Repository) GetMethanes() ([]ds.Methane, error) {
 	var methanes []ds.Methane
@@ -192,24 +257,11 @@ func (r *Repository) CreateDraftMethane(userID uint) (*ds.Methane, error) {
 }
 
 // FormMethane формирует заявку (меняет статус, вычисляет поля)
-func (r *Repository) FormMethane(id uint, updates map[string]interface{}) error {
-	updates["status"] = "сформирована"
-	updates["date_form"] = time.Now()
-	return r.db.Model(&ds.Methane{}).Where("id = ?", id).Updates(updates).Error
-}
-
-// CompleteMethane завершает/отклоняет заявку
-func (r *Repository) CompleteMethane(id uint, moderatorID uint, status string) error {
-	if status != "завершена" && status != "отклонена" {
-		return fmt.Errorf("некорректный статус завершения")
-	}
-
-	return r.db.Model(&ds.Methane{}).Where("id = ?", id).Updates(map[string]interface{}{
-		"status":       status,
-		"moderator_id": moderatorID,
-		"date_finish":  time.Now(),
-	}).Error
-}
+// func (r *Repository) FormMethane(id uint, updates map[string]interface{}) error {
+// 	updates["status"] = "сформирована"
+// 	updates["date_form"] = time.Now()
+// 	return r.db.Model(&ds.Methane{}).Where("id = ?", id).Updates(updates).Error
+// }
 
 // SoftDeleteMethane мягкое удаление (установка статуса)
 func (r *Repository) SoftDeleteMethane(id uint) error {
