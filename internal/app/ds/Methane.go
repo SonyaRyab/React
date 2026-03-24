@@ -12,12 +12,10 @@ type Methane struct {
 	DateCreate   time.Time        `json:"date_create"`
 	DateForm     *time.Time        `gorm:"default:null" json:"date_update"`
 	DateFinish   *time.Time        `gorm:"default:null" json:"date_finish"`
-	AdminID      uint             `gorm:"not null" json:"-"`
-	ModeratorID  *uint            `json:"-"`
-	Temperature  float64          `gorm:"type:decimal(6,2)" json:"temperature"`
-	MethaneYield float64          `gorm:"type:decimal(5,2)" json:"methane_yield"`
-	Admin        User             `gorm:"foreignKey:AdminID" json:"admin"`
-	Moderator    User             `gorm:"foreignKey:ModeratorID;references:ID" json:"moderator,omitempty"`
+	ResearcherID uint             `gorm:"not null" json:"-"`
+	ProfessorID  *uint            `json:"-"`
+	Researcher   User             `gorm:"foreignKey:ResearcherID" json:"researcher"`
+	Professor    *User            `gorm:"foreignKey:ProfessorID" json:"professor,omitempty"`
 	Reagents     []MethaneReagent `gorm:"foreignKey:MethaneID" json:"reagents,omitempty"`
 }
 
@@ -34,16 +32,6 @@ type MethaneListSerializer struct {
 // Сериализатор для детального просмотра
 type FullMethaneSerializer struct {
 	Methane
-	AdminName     string `json:"admin_name"`
-	ModeratorName string `json:"moderator_name,omitempty"`
-}
-
-type FormMethaneReq struct {
-	Name         string  `json:"name"`
-	Temperature  float64 `json:"temperature"`
-	MethaneYield float64 `json:"methane_yield"`
-}
-
-type CompleteMethaneReq struct {
-	Status string `json:"status"`
+	ResearcherName string `json:"researcher_name"`
+	ProfessorName  string `json:"professor_name,omitempty"`
 }

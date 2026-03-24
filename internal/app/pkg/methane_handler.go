@@ -3,16 +3,19 @@ package app
 import (
 	"net/http"
 	"strconv"
-	"errors"
 
-	_ "lab4/internal/app/ds"
 	"lab4/internal/app/role"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-type completeMethaneReq struct {
+type FormMethaneReq struct {
+	Name         string  `json:"name"`
+	Temperature  float64 `json:"temperature"`
+	MethaneYield float64 `json:"methane_yield"`
+}
+
+type CompleteMethaneReq struct {
 	Status string `json:"status"`
 }
 
@@ -26,7 +29,6 @@ type completeMethaneReq struct {
 // @Failure 500 {object} map[string]interface{}
 // @Security SessionCookieAuth
 // @Router /api/methanes [get]
-
 func (a *Application) GetMethanes(gCtx *gin.Context) {
 	userIDAny, ok := gCtx.Get("user_id")
 	if !ok {
@@ -54,7 +56,7 @@ func (a *Application) GetMethanes(gCtx *gin.Context) {
 
 // CreateDraftMethane godoc
 // @Summary Создать черновик заявки
-// @Description Создаёт новую заявку и автоматически подставляет текущего пользователя как автора
+// @Description Создаёт новую заявку и назначает текущего пользователя автором
 // @Tags methanes
 // @Produce json
 // @Success 200 {object} ds.Methane
@@ -62,7 +64,6 @@ func (a *Application) GetMethanes(gCtx *gin.Context) {
 // @Failure 500 {object} map[string]interface{}
 // @Security SessionCookieAuth
 // @Router /api/methanes/draft [post]
-
 func (a *Application) CreateDraftMethane(gCtx *gin.Context) {
 	userIDAny, ok := gCtx.Get("user_id")
 	if !ok {
@@ -90,7 +91,6 @@ func (a *Application) CreateDraftMethane(gCtx *gin.Context) {
 // @Failure 404 {object} map[string]interface{}
 // @Security SessionCookieAuth
 // @Router /api/methanes/draft [get]
-
 func (a *Application) GetDraftMethane(gCtx *gin.Context) {
 	userIDAny, ok := gCtx.Get("user_id")
 	if !ok {
@@ -116,7 +116,7 @@ func (a *Application) GetDraftMethane(gCtx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "ID заявки"
-// @Param input body object true "Поля заявки для обновления"
+// @Param input body FormMethaneReq true "Поля заявки для обновления"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
 // @Failure 401 {object} map[string]interface{}
@@ -125,7 +125,6 @@ func (a *Application) GetDraftMethane(gCtx *gin.Context) {
 // @Failure 500 {object} map[string]interface{}
 // @Security SessionCookieAuth
 // @Router /api/methanes/{id}/form [put]
-
 func (a *Application) FormMethane(gCtx *gin.Context) {
 	id64, err := strconv.ParseUint(gCtx.Param("id"), 10, 64)
 	if err != nil {
@@ -140,19 +139,20 @@ func (a *Application) FormMethane(gCtx *gin.Context) {
 	}
 	userID := userIDAny.(uint)
 
-	var updates map[string]interface{}
-	err = a.repo.FormMethaneByOwner(uint(id64), userID, updates)
-	if err != nil {
-		switch {
-		case errors.Is(err, gorm.ErrRecordNotFound):
-			gCtx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "methane not found"})
-		case err.Error() == "forbidden":
-			gCtx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-		case err.Error() == "only draft methane can be formed":
-			gCtx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		default:
-			gCtx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		}
+	var req FormMethaneReq
+	if err := gCtx.ShouldBindJSON(&req); err != nil {
+		gCtx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
+		return
+	}
+
+	updates := map[string]interface{}{
+		"name":          req.Name,
+		"temperature":   req.Temperature,
+		"methane_yield": req.MethaneYield,
+	}
+
+	if err := a.repo.FormMethaneByOwner(uint(id64), userID, updates); err != nil {
+		gCtx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -166,7 +166,7 @@ func (a *Application) FormMethane(gCtx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "ID заявки"
-// @Param input body completeMethaneReq true "Статус завершения"
+// @Param input body CompleteMethaneReq true "Статус завершения"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
 // @Failure 401 {object} map[string]interface{}
@@ -175,7 +175,6 @@ func (a *Application) FormMethane(gCtx *gin.Context) {
 // @Failure 500 {object} map[string]interface{}
 // @Security SessionCookieAuth
 // @Router /api/methanes/{id}/complete [put]
-
 func (a *Application) CompleteMethane(gCtx *gin.Context) {
 	id64, err := strconv.ParseUint(gCtx.Param("id"), 10, 64)
 	if err != nil {
@@ -191,24 +190,14 @@ func (a *Application) CompleteMethane(gCtx *gin.Context) {
 
 	moderatorID := userIDAny.(uint)
 
-	var req completeMethaneReq
+	var req CompleteMethaneReq
 	if err := gCtx.ShouldBindJSON(&req); err != nil {
 		gCtx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
 		return
 	}
 
-	err = a.repo.CompleteMethane(uint(id64), moderatorID, req.Status)
-	if err != nil {
-		switch {
-		case errors.Is(err, gorm.ErrRecordNotFound):
-			gCtx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "methane not found"})
-		case err.Error() == "invalid completion status":
-			gCtx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		case err.Error() == "only formed methane can be completed":
-			gCtx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		default:
-			gCtx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		}
+	if err := a.repo.CompleteMethane(uint(id64), moderatorID, req.Status); err != nil {
+		gCtx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 

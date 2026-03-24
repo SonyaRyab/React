@@ -22,6 +22,287 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/methanes": {
+            "get": {
+                "security": [
+                    {
+                        "SessionCookieAuth": []
+                    }
+                ],
+                "description": "Для исследователя возвращает только его заявки, для модератора и администратора — все",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "methanes"
+                ],
+                "summary": "Список заявок",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ds.Methane"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/methanes/draft": {
+            "get": {
+                "security": [
+                    {
+                        "SessionCookieAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "methanes"
+                ],
+                "summary": "Получить черновик текущего пользователя",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ds.Methane"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "SessionCookieAuth": []
+                    }
+                ],
+                "description": "Создаёт новую заявку и назначает текущего пользователя автором",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "methanes"
+                ],
+                "summary": "Создать черновик заявки",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ds.Methane"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/methanes/{id}/complete": {
+            "put": {
+                "security": [
+                    {
+                        "SessionCookieAuth": []
+                    }
+                ],
+                "description": "Только модератор или администратор может завершить сформированную заявку",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "methanes"
+                ],
+                "summary": "Завершить или отклонить заявку",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID заявки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Статус завершения",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/app.CompleteMethaneReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/methanes/{id}/form": {
+            "put": {
+                "security": [
+                    {
+                        "SessionCookieAuth": []
+                    }
+                ],
+                "description": "Только владелец заявки может перевести её из черновика в статус \"сформирована\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "methanes"
+                ],
+                "summary": "Сформировать заявку",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID заявки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Поля заявки для обновления",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/app.FormMethaneReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/api/reagents": {
             "get": {
                 "description": "Публичный метод чтения данных",
@@ -173,6 +454,28 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "app.CompleteMethaneReq": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "app.FormMethaneReq": {
+            "type": "object",
+            "properties": {
+                "methane_yield": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "temperature": {
+                    "type": "number"
+                }
+            }
+        },
         "app.loginReq": {
             "type": "object",
             "properties": {
@@ -206,6 +509,56 @@ const docTemplate = `{
                 }
             }
         },
+        "ds.Methane": {
+            "type": "object",
+            "properties": {
+                "admin": {
+                    "$ref": "#/definitions/ds.User"
+                },
+                "date_create": {
+                    "type": "string"
+                },
+                "date_finish": {
+                    "type": "string"
+                },
+                "date_update": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "methane_yield": {
+                    "type": "number"
+                },
+                "moderator": {
+                    "$ref": "#/definitions/ds.User"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "reagents": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ds.MethaneReagent"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                },
+                "temperature": {
+                    "type": "number"
+                }
+            }
+        },
+        "ds.MethaneReagent": {
+            "type": "object",
+            "properties": {
+                "quantity": {
+                    "description": "Дополнительные поля м-м",
+                    "type": "number"
+                }
+            }
+        },
         "ds.Reagent": {
             "type": "object",
             "properties": {
@@ -231,6 +584,49 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "ds.User": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "login": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/role.Role"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "role.Role": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-comments": {
+                "Admin": "2",
+                "Manager": "1",
+                "Researcher": "0"
+            },
+            "x-enum-descriptions": [
+                "0",
+                "1",
+                "2"
+            ],
+            "x-enum-varnames": [
+                "Researcher",
+                "Manager",
+                "Admin"
+            ]
         }
     },
     "securityDefinitions": {
@@ -245,7 +641,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "127.0.0.1:8080",
+	Host:             "localhost:8080",
 	BasePath:         "/",
 	Schemes:          []string{"http"},
 	Title:            "BITOP",

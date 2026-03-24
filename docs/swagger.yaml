@@ -1,5 +1,19 @@
 basePath: /
 definitions:
+  app.CompleteMethaneReq:
+    properties:
+      status:
+        type: string
+    type: object
+  app.FormMethaneReq:
+    properties:
+      methane_yield:
+        type: number
+      name:
+        type: string
+      temperature:
+        type: number
+    type: object
   app.loginReq:
     properties:
       login:
@@ -21,6 +35,39 @@ definitions:
       ok:
         type: boolean
     type: object
+  ds.Methane:
+    properties:
+      admin:
+        $ref: '#/definitions/ds.User'
+      date_create:
+        type: string
+      date_finish:
+        type: string
+      date_update:
+        type: string
+      id:
+        type: integer
+      methane_yield:
+        type: number
+      moderator:
+        $ref: '#/definitions/ds.User'
+      name:
+        type: string
+      reagents:
+        items:
+          $ref: '#/definitions/ds.MethaneReagent'
+        type: array
+      status:
+        type: string
+      temperature:
+        type: number
+    type: object
+  ds.MethaneReagent:
+    properties:
+      quantity:
+        description: Дополнительные поля м-м
+        type: number
+    type: object
   ds.Reagent:
     properties:
       description:
@@ -38,7 +85,38 @@ definitions:
       video:
         type: string
     type: object
-host: 127.0.0.1:8080
+  ds.User:
+    properties:
+      id:
+        type: integer
+      login:
+        type: string
+      name:
+        type: string
+      role:
+        $ref: '#/definitions/role.Role'
+      uuid:
+        type: string
+    type: object
+  role.Role:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-comments:
+      Admin: "2"
+      Manager: "1"
+      Researcher: "0"
+    x-enum-descriptions:
+    - "0"
+    - "1"
+    - "2"
+    x-enum-varnames:
+    - Researcher
+    - Manager
+    - Admin
+host: localhost:8080
 info:
   contact:
     email: bitop@spatecon.ru
@@ -50,6 +128,194 @@ info:
   title: BITOP
   version: "1.0"
 paths:
+  /api/methanes:
+    get:
+      description: Для исследователя возвращает только его заявки, для модератора
+        и администратора — все
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ds.Methane'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - SessionCookieAuth: []
+      summary: Список заявок
+      tags:
+      - methanes
+  /api/methanes/{id}/complete:
+    put:
+      consumes:
+      - application/json
+      description: Только модератор или администратор может завершить сформированную
+        заявку
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Статус завершения
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/app.CompleteMethaneReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - SessionCookieAuth: []
+      summary: Завершить или отклонить заявку
+      tags:
+      - methanes
+  /api/methanes/{id}/form:
+    put:
+      consumes:
+      - application/json
+      description: Только владелец заявки может перевести её из черновика в статус
+        "сформирована"
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Поля заявки для обновления
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/app.FormMethaneReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - SessionCookieAuth: []
+      summary: Сформировать заявку
+      tags:
+      - methanes
+  /api/methanes/draft:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ds.Methane'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - SessionCookieAuth: []
+      summary: Получить черновик текущего пользователя
+      tags:
+      - methanes
+    post:
+      description: Создаёт новую заявку и назначает текущего пользователя автором
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ds.Methane'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - SessionCookieAuth: []
+      summary: Создать черновик заявки
+      tags:
+      - methanes
   /api/reagents:
     get:
       description: Публичный метод чтения данных

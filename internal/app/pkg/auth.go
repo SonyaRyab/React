@@ -24,7 +24,7 @@ type loginReq struct {
 
 type registerReq struct {
 	Login string `json:"login"`
-	Name  string `json:"name"`
+	Username  string `json:"name"`
 	Pass  string `json:"pass"`
 }
 
@@ -61,15 +61,15 @@ func (a *Application) Register(gCtx *gin.Context) {
 		return
 	}
 
-	if req.Login == "" || req.Name == "" || req.Pass == "" {
-		gCtx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "login, name, pass are required"})
+	if req.Login == "" || req.Username == "" || req.Pass == "" {
+		gCtx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "login, username, pass are required"})
 		return
 	}
 
 	req.Login = strings.TrimSpace(req.Login)
-	req.Name = strings.TrimSpace(req.Name)
+	req.Username = strings.TrimSpace(req.Username)
 
-	if req.Login == "" || req.Name == "" || req.Pass == "" {
+	if req.Login == "" || req.Username == "" || req.Pass == "" {
 		gCtx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "login, name, pass are required"})
 		return
 	}
@@ -93,7 +93,7 @@ func (a *Application) Register(gCtx *gin.Context) {
 	err = a.repo.Register(&ds.User{
 		UUID:     uuid.New(),
 		Login:    req.Login,
-		Name:     req.Name,
+		Username:     req.Username,
 		Role:     role.Researcher,
 		PassHash: passHash,
 	})
@@ -183,8 +183,8 @@ func (a *Application) Login(gCtx *gin.Context) {
 // @Success 200 {object} map[string]interface{}
 // @Failure 401 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
-// @Router /auth/logout [post]
 // @Security SessionCookieAuth
+// @Router /auth/logout [post]
 
 func (a *Application) Logout(gCtx *gin.Context) {
 	sessionID, err := gCtx.Cookie("session_id")

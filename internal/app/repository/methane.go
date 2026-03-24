@@ -30,7 +30,7 @@ func (r *Repository) FormMethaneByOwner(id uint, userID uint, updates map[string
 		return err
 	}
 
-	if methane.AdminID != userID {
+	if methane.ProfessorID == nil || *methane.ProfessorID != userID {
 		return errors.New("forbidden")
 	}
 
@@ -134,7 +134,6 @@ func (r *Repository) ModifyMethane(id uint, methane *ds.Methane) error {
 	// Создаем структуру для обновления без UUID
 	updateData := map[string]interface{}{
 		"name":        methane.Name,
-		"temperature": methane.Temperature,
 		"status":      methane.Status,
 	}
 
@@ -246,11 +245,12 @@ func (r *Repository) GetDraftMethane(userID uint) (*ds.Methane, error) {
 
 // CreateDraftMethane создаёт пустую заявку-черновик
 func (r *Repository) CreateDraftMethane(userID uint) (*ds.Methane, error) {
+	now := time.Now()
 	methane := ds.Methane{
 		Name:       "Новый эксперимент",
 		Status:     "черновик",
-		DateCreate: time.Now(),
-		AdminID:    userID,
+		DateCreate: now,
+		ProfessorID: &userID,
 	}
 	err := r.db.Create(&methane).Error
 	return &methane, err
