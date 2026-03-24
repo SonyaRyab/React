@@ -6,6 +6,9 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	_ "lab4/docs"
 )
 
 func (a *Application) StartServer() {
@@ -14,6 +17,7 @@ func (a *Application) StartServer() {
 	r := gin.Default()
 
 	r.GET("/ping/:name", a.Ping)
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	auth := r.Group("/auth")
 	{
