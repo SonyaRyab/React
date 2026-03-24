@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"strconv"
 
+	docs "lab4/docs"
+
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	_ "lab4/docs"
 )
 
 func (a *Application) StartServer() {
@@ -17,7 +18,16 @@ func (a *Application) StartServer() {
 	r := gin.Default()
 
 	r.GET("/ping/:name", a.Ping)
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	r.GET("/docs/doc.json", func(c *gin.Context) {
+		c.Header("Content-Type", "application/json")
+		c.String(http.StatusOK, docs.SwaggerInfo.ReadDoc())
+	})
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(
+		swaggerFiles.Handler,
+		ginSwagger.URL("/docs/doc.json"),
+	))
 
 	auth := r.Group("/auth")
 	{

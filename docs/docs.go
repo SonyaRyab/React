@@ -245,9 +245,9 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "127.0.0.1",
+	Host:             "127.0.0.1:8080",
 	BasePath:         "/",
-	Schemes:          []string{"https", "http"},
+	Schemes:          []string{"http"},
 	Title:            "BITOP",
 	Description:      "Bmstu Open IT Platform",
 	InfoInstanceName: "swagger",

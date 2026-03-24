@@ -37,3 +37,13 @@ type FullMethaneSerializer struct {
 	AdminName     string `json:"admin_name"`
 	ModeratorName string `json:"moderator_name,omitempty"`
 }
+
+type FormMethaneReq struct {
+	Name         string  `json:"name"`
+	Temperature  float64 `json:"temperature"`
+	MethaneYield float64 `json:"methane_yield"`
+}
+
+type CompleteMethaneReq struct {
+	Status string `json:"status"`
+}

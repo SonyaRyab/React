@@ -24,6 +24,7 @@ type completeMethaneReq struct {
 // @Success 200 {array} ds.Methane
 // @Failure 401 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
+// @Security SessionCookieAuth
 // @Router /api/methanes [get]
 
 func (a *Application) GetMethanes(gCtx *gin.Context) {
@@ -59,8 +60,8 @@ func (a *Application) GetMethanes(gCtx *gin.Context) {
 // @Success 200 {object} ds.Methane
 // @Failure 401 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
-// @Router /api/methanes/draft [post]
 // @Security SessionCookieAuth
+// @Router /api/methanes/draft [post]
 
 func (a *Application) CreateDraftMethane(gCtx *gin.Context) {
 	userIDAny, ok := gCtx.Get("user_id")
@@ -87,8 +88,8 @@ func (a *Application) CreateDraftMethane(gCtx *gin.Context) {
 // @Success 200 {object} ds.Methane
 // @Failure 401 {object} map[string]interface{}
 // @Failure 404 {object} map[string]interface{}
-// @Router /api/methanes/draft [get]
 // @Security SessionCookieAuth
+// @Router /api/methanes/draft [get]
 
 func (a *Application) GetDraftMethane(gCtx *gin.Context) {
 	userIDAny, ok := gCtx.Get("user_id")
@@ -122,8 +123,8 @@ func (a *Application) GetDraftMethane(gCtx *gin.Context) {
 // @Failure 403 {object} map[string]interface{}
 // @Failure 404 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
-// @Router /api/methanes/{id}/form [put]
 // @Security SessionCookieAuth
+// @Router /api/methanes/{id}/form [put]
 
 func (a *Application) FormMethane(gCtx *gin.Context) {
 	id64, err := strconv.ParseUint(gCtx.Param("id"), 10, 64)
@@ -172,8 +173,8 @@ func (a *Application) FormMethane(gCtx *gin.Context) {
 // @Failure 403 {object} map[string]interface{}
 // @Failure 404 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
-// @Router /api/methanes/{id}/complete [put]
 // @Security SessionCookieAuth
+// @Router /api/methanes/{id}/complete [put]
 
 func (a *Application) CompleteMethane(gCtx *gin.Context) {
 	id64, err := strconv.ParseUint(gCtx.Param("id"), 10, 64)
