@@ -1,28 +1,27 @@
 package redis
 
 import (
-	"lab4/internal/app/config"
 	"context"
 	"fmt"
-	"github.com/go-redis/redis/v8"
 	"strconv"
-	"time"
+
+	"lab4/internal/app/config"
+
+	goredis "github.com/go-redis/redis/v8"
 )
 
-const servicePrefix = "lab4_service." // наш префикс сервиса
+const servicePrefix = "lab4_service."
 
 type Client struct {
 	cfg    config.RedisConfig
-	client *redis.Client
+	client *goredis.Client
 }
 
 func New(ctx context.Context, cfg config.RedisConfig) (*Client, error) {
-	client := &Client{}
+	client := &Client{cfg: cfg}
 
-	client.cfg = cfg
-
-	redisClient := redis.NewClient(&redis.Options{
-		Password:    cfg.Password
+	redisClient := goredis.NewClient(&goredis.Options{
+		Password:    cfg.Password,
 		Username:    cfg.User,
 		Addr:        cfg.Host + ":" + strconv.Itoa(cfg.Port),
 		DB:          0,

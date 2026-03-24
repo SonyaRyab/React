@@ -1,9 +1,11 @@
 package config
 
 import (
+	"fmt"
 	"os"
+	"strconv"
 	"time"
-	"github.com/golang-jwt/jwt"
+
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"

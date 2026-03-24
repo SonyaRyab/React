@@ -3,6 +3,7 @@ package app
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,26 +22,31 @@ func (a *Application) StartServer() {
 		auth.POST("/logout", a.WithSessionAuth(), a.Logout)
 	}
 
-	api := r.Group("/")
+	api := r.Group("/api")
 	{
 		api.GET("/reagents", a.GetReagentsPublic)
 	}
 
-	user := r.Group("/")
+	user := r.Group("/api")
 	user.Use(a.WithSessionAuth())
 	{
 		user.GET("/methanes", a.GetMethanes)
 		user.POST("/methanes/draft", a.CreateDraftMethane)
 		user.GET("/methanes/draft", a.GetDraftMethane)
+		user.PUT("/methanes/:id/form", a.FormMethane)
 	}
 
-	moderator := r.Group("/")
+	moderator := r.Group("/api")
 	moderator.Use(a.WithSessionAuth())
 	{
 		moderator.PUT("/methanes/:id/complete", a.RequireModerator(), a.CompleteMethane)
 	}
 
-	addr := ":8080"
+	addr := a.config.ServiceHost + ":" + strconv.Itoa(a.config.ServicePort)
+	if a.config.ServiceHost == "" {
+		addr = ":8080"
+	}
+
 	if err := r.Run(addr); err != nil {
 		log.Println(err)
 	}

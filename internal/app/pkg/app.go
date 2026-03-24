@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"log"
+	"os"
 
 	"lab4/internal/app/config"
 	"lab4/internal/app/dsn"
@@ -29,6 +30,11 @@ func New(ctx context.Context) (*Application, error) {
 		MinioSecretKey:  os.Getenv("MINIO_SECRET_KEY"),
 		MinioBucketName: os.Getenv("MINIO_BUCKET"),
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	redisClient, err := redis.New(ctx, cfg.Redis)
 	if err != nil {
 		return nil, err
 	}
