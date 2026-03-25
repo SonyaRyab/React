@@ -498,6 +498,9 @@ const docTemplate = `{
                 },
                 "pass": {
                     "type": "string"
+                },
+                "role": {
+                    "type": "string"
                 }
             }
         },
@@ -512,9 +515,6 @@ const docTemplate = `{
         "ds.Methane": {
             "type": "object",
             "properties": {
-                "admin": {
-                    "$ref": "#/definitions/ds.User"
-                },
                 "date_create": {
                     "type": "string"
                 },
@@ -527,14 +527,11 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "methane_yield": {
-                    "type": "number"
-                },
-                "moderator": {
-                    "$ref": "#/definitions/ds.User"
-                },
                 "name": {
                     "type": "string"
+                },
+                "professor": {
+                    "$ref": "#/definitions/ds.User"
                 },
                 "reagents": {
                     "type": "array",
@@ -542,19 +539,21 @@ const docTemplate = `{
                         "$ref": "#/definitions/ds.MethaneReagent"
                     }
                 },
+                "researcher": {
+                    "$ref": "#/definitions/ds.User"
+                },
                 "status": {
                     "type": "string"
-                },
-                "temperature": {
-                    "type": "number"
                 }
             }
         },
         "ds.MethaneReagent": {
             "type": "object",
             "properties": {
+                "methane_yield": {
+                    "type": "number"
+                },
                 "quantity": {
-                    "description": "Дополнительные поля м-м",
                     "type": "number"
                 }
             }
@@ -574,11 +573,11 @@ const docTemplate = `{
                 "img": {
                     "type": "string"
                 },
-                "molar_mass": {
-                    "type": "number"
-                },
                 "name": {
                     "type": "string"
+                },
+                "temperature": {
+                    "type": "number"
                 },
                 "video": {
                     "type": "string"
@@ -588,17 +587,23 @@ const docTemplate = `{
         "ds.User": {
             "type": "object",
             "properties": {
+                "email": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
+                },
+                "is_professor": {
+                    "type": "boolean"
                 },
                 "login": {
                     "type": "string"
                 },
-                "name": {
-                    "type": "string"
-                },
                 "role": {
                     "$ref": "#/definitions/role.Role"
+                },
+                "username": {
+                    "type": "string"
                 },
                 "uuid": {
                     "type": "string"
@@ -606,25 +611,15 @@ const docTemplate = `{
             }
         },
         "role.Role": {
-            "type": "integer",
+            "type": "string",
             "enum": [
-                0,
-                1,
-                2
-            ],
-            "x-enum-comments": {
-                "Admin": "2",
-                "Manager": "1",
-                "Researcher": "0"
-            },
-            "x-enum-descriptions": [
-                "0",
-                "1",
-                "2"
+                "researcher",
+                "professor",
+                "admin"
             ],
             "x-enum-varnames": [
                 "Researcher",
-                "Manager",
+                "Professor",
                 "Admin"
             ]
         }

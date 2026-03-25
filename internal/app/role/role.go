@@ -1,9 +1,9 @@
 package role
 
-type Role int
+type Role string
 
 const (
-	Researcher   Role = iota // 0
-	Manager             // 1
-	Admin               // 2
+	Researcher Role = "researcher"
+    Professor  Role = "professor"
+    Admin      Role = "admin"
 )

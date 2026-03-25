@@ -26,6 +26,7 @@ type registerReq struct {
 	Login string `json:"login"`
 	Username  string `json:"name"`
 	Pass  string `json:"pass"`
+	Role     string `json:"role"`
 }
 
 type registerResp struct {
@@ -94,8 +95,11 @@ func (a *Application) Register(gCtx *gin.Context) {
 		UUID:     uuid.New(),
 		Login:    req.Login,
 		Username:     req.Username,
+		Email:     req.Login + "@test.ru",
+    	Password:  req.Pass,           
 		Role:     role.Researcher,
 		PassHash: passHash,
+		IsProfessor: false,
 	})
 
 	if err != nil {

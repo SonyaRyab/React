@@ -17,6 +17,14 @@ func (a *Application) StartServer() {
 
 	r := gin.Default()
 
+	r.Use(gin.Recovery())
+
+	r.Use(func(c *gin.Context) {
+        log.Printf("REQUEST: %s %s", c.Request.Method, c.Request.URL.Path)
+        c.Next()
+        log.Printf("RESPONSE: %d", c.Writer.Status())
+    }) 
+
 	r.GET("/ping/:name", a.Ping)
 
 	r.GET("/docs/doc.json", func(c *gin.Context) {
@@ -50,10 +58,10 @@ func (a *Application) StartServer() {
 		user.PUT("/methanes/:id/form", a.FormMethane)
 	}
 
-	moderator := r.Group("/api")
-	moderator.Use(a.WithSessionAuth())
+	researcher := r.Group("/api")
+	researcher.Use(a.WithSessionAuth())
 	{
-		moderator.PUT("/methanes/:id/complete", a.RequireModerator(), a.CompleteMethane)
+		researcher.PUT("/methanes/:id/complete", a.RequireModerator(), a.CompleteMethane)
 	}
 
 	addr := a.config.ServiceHost + ":" + strconv.Itoa(a.config.ServicePort)

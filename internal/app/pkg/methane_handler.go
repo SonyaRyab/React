@@ -188,7 +188,7 @@ func (a *Application) CompleteMethane(gCtx *gin.Context) {
 		return
 	}
 
-	moderatorID := userIDAny.(uint)
+	currentUserID := userIDAny.(uint)
 
 	var req CompleteMethaneReq
 	if err := gCtx.ShouldBindJSON(&req); err != nil {
@@ -196,10 +196,14 @@ func (a *Application) CompleteMethane(gCtx *gin.Context) {
 		return
 	}
 
-	if err := a.repo.CompleteMethane(uint(id64), moderatorID, req.Status); err != nil {
-		gCtx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+	if err := a.repo.CompleteMethane(uint(id64), currentUserID, req.Status); err != nil {
+        if err.Error() == "forbidden" {
+            gCtx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+            return
+        }
+        gCtx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
 	gCtx.JSON(http.StatusOK, gin.H{"ok": true})
 }

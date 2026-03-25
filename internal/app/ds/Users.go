@@ -9,7 +9,7 @@ type User struct {
 	ID          uint   `gorm:"primaryKey" json:"id"`
 	Username    string `gorm:"type:varchar(50);not null" json:"username"`
 	Email       string `gorm:"type:varchar(25);not null" json:"email"`
-	Password    string `gorm:"type:varchar(255);not null" json:"-"`
+	Password    string `gorm:"type:string;not null" json:"-"`
 	UUID uuid.UUID `gorm:"type:uuid"`
 	Login    string    `gorm:"type:varchar(50);uniqueIndex;not null" json:"login"`
 	Role role.Role `sql:"type:string;"`

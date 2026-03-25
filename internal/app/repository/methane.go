@@ -16,7 +16,7 @@ import (
 
 func (r *Repository) GetMethaneByID(id uint) (*ds.Methane, error) {
 	var methane ds.Methane
-	err := r.db.Preload("Admin").Preload("Moderator").Where("id = ?", id).First(&methane).Error
+	err := r.db.Preload("Professor").Preload("Researcher").Where("id = ?", id).First(&methane).Error
 	if err != nil {
 		return nil, err
 	}
@@ -39,8 +39,8 @@ func (r *Repository) FormMethaneByOwner(id uint, userID uint, updates map[string
 	}
 
 	delete(updates, "id")
-	delete(updates, "admin_id")
-	delete(updates, "moderator_id")
+	delete(updates, "professor_id")
+	delete(updates, "researcher_id")
 	delete(updates, "status")
 	delete(updates, "date_create")
 	delete(updates, "date_form")
@@ -53,7 +53,7 @@ func (r *Repository) FormMethaneByOwner(id uint, userID uint, updates map[string
 	return r.db.Model(&ds.Methane{}).Where("id = ?", id).Updates(updates).Error
 }
 
-func (r *Repository) CompleteMethane(id uint, moderatorID uint, status string) error {
+func (r *Repository) CompleteMethane(id uint, currentUserID uint, status string) error {
 	if status != "завершена" && status != "отклонена" {
 		return fmt.Errorf("invalid completion status")
 	}
@@ -68,10 +68,14 @@ func (r *Repository) CompleteMethane(id uint, moderatorID uint, status string) e
 		return fmt.Errorf("only formed methane can be completed")
 	}
 
+	if methane.ResearcherID == currentUserID {
+        return fmt.Errorf("forbidden")
+    }
+
 	now := time.Now()
 	return r.db.Model(&ds.Methane{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"status":       status,
-		"moderator_id": moderatorID,
+		"professor_id": currentUserID,
 		"date_finish":  &now,
 	}).Error
 }
@@ -103,7 +107,7 @@ func (r *Repository) AddMethane(methane *ds.Methane) error {
 
 func (r *Repository) GetMethane(id int) (ds.Methane, error) {
 	methane := ds.Methane{}
-	err := r.db.Preload("Admin").Where("id = ?", id).First(&methane).Error
+	err := r.db.Preload("Professor").Where("id = ?", id).First(&methane).Error
 	if err != nil {
 		return ds.Methane{}, err
 	}
@@ -236,7 +240,7 @@ func (r *Repository) GetMethanesWithFilter(status string, dateFrom, dateTo strin
 // GetDraftMethane получает черновик текущего пользователя
 func (r *Repository) GetDraftMethane(userID uint) (*ds.Methane, error) {
 	var methane ds.Methane
-	err := r.db.Where("admin_id = ? AND status = ?", userID, "черновик").First(&methane).Error
+	err := r.db.Where("professor_id = ? AND status = ?", userID, "черновик").First(&methane).Error
 	if err != nil {
 		return nil, err
 	}
@@ -271,7 +275,7 @@ func (r *Repository) SoftDeleteMethane(id uint) error {
 // GetMethaneWithReagents получает заявку со всеми реагентами
 func (r *Repository) GetMethaneWithReagents(id uint) (ds.Methane, error) {
 	var methane ds.Methane
-	err := r.db.Preload("Admin").Preload("Moderator").Preload("Reagents").Preload("Reagents.Reagent").
+	err := r.db.Preload("Professor").Preload("Researcher").Preload("Reagents").Preload("Reagents.Reagent").
 		Where("id = ?", id).First(&methane).Error
 	return methane, err
 }

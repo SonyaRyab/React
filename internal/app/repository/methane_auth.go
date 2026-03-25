@@ -8,13 +8,16 @@ import (
 func (r *Repository) GetMethanesForUser(userID uint, userRole role.Role) ([]ds.Methane, error) {
 	var items []ds.Methane
 
-	query := r.db.Preload("Admin").Preload("Moderator")
+	query := r.db.Preload("Professor").Preload("Researcher")
 
-	if userRole == role.Manager || userRole == role.Admin {
-		err := query.Find(&items).Error
-		return items, err
-	}
-
-	err := query.Where("admin_id = ?", userID).Find(&items).Error
-	return items, err
+	switch userRole {
+    case role.Researcher:
+        err := query.Where("researcher_id = ?", userID).Find(&items).Error
+        return items, err
+    case role.Professor:
+        err := query.Find(&items).Error
+        return items, err
+    default:
+        return items, nil
+    }
 }

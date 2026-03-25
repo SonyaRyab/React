@@ -29,6 +29,8 @@ definitions:
         type: string
       pass:
         type: string
+      role:
+        type: string
     type: object
   app.registerResp:
     properties:
@@ -37,8 +39,6 @@ definitions:
     type: object
   ds.Methane:
     properties:
-      admin:
-        $ref: '#/definitions/ds.User'
       date_create:
         type: string
       date_finish:
@@ -47,25 +47,24 @@ definitions:
         type: string
       id:
         type: integer
-      methane_yield:
-        type: number
-      moderator:
-        $ref: '#/definitions/ds.User'
       name:
         type: string
+      professor:
+        $ref: '#/definitions/ds.User'
       reagents:
         items:
           $ref: '#/definitions/ds.MethaneReagent'
         type: array
+      researcher:
+        $ref: '#/definitions/ds.User'
       status:
         type: string
-      temperature:
-        type: number
     type: object
   ds.MethaneReagent:
     properties:
+      methane_yield:
+        type: number
       quantity:
-        description: Дополнительные поля м-м
         type: number
     type: object
   ds.Reagent:
@@ -78,43 +77,39 @@ definitions:
         type: integer
       img:
         type: string
-      molar_mass:
-        type: number
       name:
         type: string
+      temperature:
+        type: number
       video:
         type: string
     type: object
   ds.User:
     properties:
+      email:
+        type: string
       id:
         type: integer
+      is_professor:
+        type: boolean
       login:
-        type: string
-      name:
         type: string
       role:
         $ref: '#/definitions/role.Role'
+      username:
+        type: string
       uuid:
         type: string
     type: object
   role.Role:
     enum:
-    - 0
-    - 1
-    - 2
-    type: integer
-    x-enum-comments:
-      Admin: "2"
-      Manager: "1"
-      Researcher: "0"
-    x-enum-descriptions:
-    - "0"
-    - "1"
-    - "2"
+    - researcher
+    - professor
+    - admin
+    type: string
     x-enum-varnames:
     - Researcher
-    - Manager
+    - Professor
     - Admin
 host: localhost:8080
 info:
