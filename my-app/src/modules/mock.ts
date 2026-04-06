@@ -4,7 +4,7 @@ export const REAGENTS_MOCK: Reagent[] = [
   {
     id: 1,
     name: "Водород",
-    formula: "H₂",
+    formula: "H2",
     description: "Восстановитель в реакции Сабатье",
     molar_mass: 2.016,
     img: "/default-reagent.jpg",
@@ -13,7 +13,7 @@ export const REAGENTS_MOCK: Reagent[] = [
   {
     id: 2,
     name: "Углерод",
-    formula: "CO₂",
+    formula: "CO2",
     description: "Исходное вещество",
     molar_mass: 44.01,
     img: "",

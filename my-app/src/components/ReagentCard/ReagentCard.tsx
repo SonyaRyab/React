@@ -9,29 +9,26 @@ interface Props {
   reagent: Reagent;
   onClick?: () => void;
   onAddToCart?: () => void;
+  isInCart?: boolean;
 }
 
-export const ReagentCard: FC<Props> = ({ reagent, onClick, onAddToCart }) => (
+export const ReagentCard: FC<Props> = ({ reagent, onClick, onAddToCart, isInCart }) => (
   <Card className="reagent-card" onClick={onClick} style={{ cursor: "pointer" }}>
     <div className="product-title-container">
       <Card.Title className="product-name">{reagent.name}</Card.Title>
     </div>
-    <Card.Img 
-      variant="top" 
-      src={reagent.img || defaultImage}
-      height={200}
-      style={{ objectFit: "contain", padding: "10px" }}
-    />
+    <Card.Img variant="top" src={reagent.img || defaultImage} height={200} />
     <Card.Body>
       <div className="product-formula">{reagent.formula}</div>
       <Button 
-        className="add-to-cart"
+        className={`add-to-cart ${isInCart ? 'in-cart' : ''}`}
         onClick={(e) => {
           e.stopPropagation();
           onAddToCart?.();
         }}
+        disabled={isInCart}
       >
-        В заявку
+        {isInCart ? 'В заявке' : 'В заявку'}
       </Button>
     </Card.Body>
   </Card>

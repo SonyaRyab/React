@@ -3,22 +3,40 @@ import { HomePage } from "./pages/HomePage/HomePage";
 import { AppNavbar } from "./components/Navbar/Navbar";
 import { ReagentsPage } from "./pages/ReagentsPage/ReagentsPage";
 import { ReagentDetailPage } from "./pages/ReagentDetailPage/ReagentDetailPage";
+import { MethanePage } from "./pages/MethanePage/MethanePage";
 import { ROUTES } from "./Routes";
+import type { Reagent } from "./modules/types";
 import { useState } from "react";
 
 function App() {
-  const [cartCount, setCartCount] = useState(0);
+   const [cartItems, setCartItems] = useState<Reagent[]>([]);
+
+  const addToCart = (reagent: Reagent) => {
+    setCartItems((prev) => [...prev, reagent]);
+  };
+
+  const removeFromCart = (reagentId: number) => {
+    setCartItems((prev) => prev.filter((item) => item.id !== reagentId));
+  };
+
+  const clearCart = () => {
+    setCartItems([]);
+  };
 
   return (
     <>
-      <AppNavbar cartCount={cartCount} />
+      <AppNavbar cartCount={cartItems.length} />
       <Routes>
         <Route path={ROUTES.HOME} element={<HomePage />} />
         <Route 
           path={ROUTES.REAGENTS} 
-          element={<ReagentsPage cartCount={cartCount} setCartCount={setCartCount} />} 
+          element={<ReagentsPage cartItems={cartItems} addToCart={addToCart} />} 
         />
-        <Route path={ROUTES.REAGENT} element={<ReagentDetailPage />} />
+        <Route path={ROUTES.REAGENT} element={<ReagentDetailPage addToCart={addToCart} />} />
+        <Route 
+          path={ROUTES.METHANE} 
+          element={<MethanePage cartItems={cartItems} removeFromCart={removeFromCart} clearCart={clearCart} />} 
+        />
       </Routes>
     </>
   );

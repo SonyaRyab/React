@@ -11,15 +11,17 @@ import type { Reagent } from "../../modules/types";
 import { useNavigate } from "react-router-dom";
 
 interface ReagentsPageProps {
-  cartCount: number;
-  setCartCount: React.Dispatch<React.SetStateAction<number>>;
+  cartItems: Reagent[];
+  addToCart: (reagent: Reagent) => void;
 }
 
-export const ReagentsPage: FC<ReagentsPageProps> = ({ cartCount, setCartCount }) => {
+export const ReagentsPage: FC<ReagentsPageProps> = ({ cartItems, addToCart }) => {
   const [searchValue, setSearchValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [reagents, setReagents] = useState<Reagent[]>([]);
   const navigate = useNavigate();
+
+  const cartCount = cartItems.length;
 
   const handleSearch = () => {
     setLoading(true);
@@ -80,7 +82,8 @@ export const ReagentsPage: FC<ReagentsPageProps> = ({ cartCount, setCartCount })
             key={reagent.id}
             reagent={reagent}
             onClick={() => navigate(`${ROUTES.REAGENTS}/${reagent.id}`)}
-            onAddToCart={() => setCartCount((prev) => prev + 1)}
+            onAddToCart={() => addToCart(reagent)}
+            isInCart={cartItems.some(item => item.id === reagent.id)}
           />
         ))}
       </div>

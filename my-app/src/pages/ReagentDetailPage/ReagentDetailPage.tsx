@@ -9,7 +9,11 @@ import type { Reagent } from "../../modules/types";
 import { Spinner, Button } from "react-bootstrap";
 import "./ReagentDetailPage.css";
 
-export const ReagentDetailPage: FC = () => {
+interface ReagentDetailPageProps {
+  addToCart?: (reagent: Reagent) => void;
+}
+
+export const ReagentDetailPage: FC<ReagentDetailPageProps> = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [reagent, setReagent] = useState<Reagent>();
