@@ -1,15 +1,26 @@
 import { Route, Routes } from "react-router-dom";
-import ITunesPage from "./pages/ITunesPage/ITunesPage";
-import { AlbumPage } from "./pages/AlbumPage/AlbumPage";
+import { HomePage } from "./pages/HomePage/HomePage";
+import { AppNavbar } from "./components/Navbar/Navbar";
+import { ReagentsPage } from "./pages/ReagentsPage/ReagentsPage";
+import { ReagentDetailPage } from "./pages/ReagentDetailPage/ReagentDetailPage";
 import { ROUTES } from "./Routes";
+import { useState } from "react";
 
 function App() {
+  const [cartCount, setCartCount] = useState(0);
+
   return (
+    <>
+      <AppNavbar cartCount={cartCount} />
       <Routes>
-        <Route path={ROUTES.HOME} index element={<ITunesPage />} />
-        <Route path={ROUTES.ALBUMS} element={<ITunesPage />} />
-        <Route path={`${ROUTES.ALBUMS}/:id`} element={<AlbumPage />} />
+        <Route path={ROUTES.HOME} element={<HomePage />} />
+        <Route 
+          path={ROUTES.REAGENTS} 
+          element={<ReagentsPage cartCount={cartCount} setCartCount={setCartCount} />} 
+        />
+        <Route path={ROUTES.REAGENT} element={<ReagentDetailPage />} />
       </Routes>
+    </>
   );
 }
 

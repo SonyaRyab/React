@@ -9,10 +9,9 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
    <BrowserRouter>
-      {/* Навигация сверху */}
       <ul>
         <li><Link to={ROUTES.HOME}>Главная</Link></li>
-        <li><Link to={ROUTES.ALBUMS}>Альбомы</Link></li>
+        <li><Link to={ROUTES.REAGENTS}>Реагенты</Link></li>
       </ul>
       <hr />
       <App />

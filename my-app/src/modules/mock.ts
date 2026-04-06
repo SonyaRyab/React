@@ -1,31 +1,37 @@
-import type { ITunesResult } from "./itunesApi";
+import type { Reagent } from "./types";
 
-export const SONGS_MOCK: ITunesResult = {
-  resultCount: 3, 
-  results: [
-    {
-      wrapperType: "track",
-      artistName: "Pink Floyd",
-      collectionCensoredName: "The Wall",
-      trackViewUrl: "",
-      artworkUrl100: "",
-      collectionId: 1,
-    },
-    {
-      wrapperType: "track",
-      artistName: "Queen",
-      collectionCensoredName: "A Night At The Opera",
-      trackViewUrl: "",
-      artworkUrl100: "",
-      collectionId: 2,
-    },
-    {
-      wrapperType: "track",
-      artistName: "AC/DC",
-      collectionCensoredName: "Made in Heaven",
-      trackViewUrl: "",
-      artworkUrl100: "",
-      collectionId: 3,
-    },
-  ],
-};
+export const REAGENTS_MOCK: Reagent[] = [
+  {
+    id: 1,
+    name: "Водород",
+    formula: "H₂",
+    description: "Восстановитель в реакции Сабатье",
+    molar_mass: 2.016,
+    img: "/default-reagent.jpg",
+    video: "",
+  },
+  {
+    id: 2,
+    name: "Углерод",
+    formula: "CO₂",
+    description: "Исходное вещество",
+    molar_mass: 44.01,
+    img: "",
+  },
+  {
+    id: 3,
+    name: "Никель",
+    formula: "Ni",
+    description: "Катализатор реакции",
+    molar_mass: 58.69,
+    img: "",
+  },
+  {
+    id: 4,
+    name: "Энергия",
+    formula: "E",
+    description: "Энергия в реакции",
+    molar_mass: 0,
+    img: "",
+  },
+];

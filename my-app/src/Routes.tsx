@@ -1,9 +1,14 @@
 export const ROUTES = {
   HOME: "/",
-  ALBUMS: "/albums",
-}
+  REAGENTS: "/reagents",
+  REAGENT: "/reagents/:id",
+  METHANE: "/methane",
+} as const;
+
 export type RouteKeyType = keyof typeof ROUTES;
-export const ROUTE_LABELS: {[key in RouteKeyType]: string} = {
+
+export const ROUTE_LABELS = {
   HOME: "Главная",
-  ALBUMS: "Альбомы",
-};
+  REAGENTS: "Каталог реагентов",
+  METHANE: "Заявка",
+} as const;
