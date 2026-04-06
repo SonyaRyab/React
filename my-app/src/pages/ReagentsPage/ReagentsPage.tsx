@@ -43,11 +43,12 @@ export const ReagentsPage: FC<ReagentsPageProps> = ({ cartItems, addToCart }) =>
   }, []);
 
   return (
-    <div className="container">
+    <>
       <header className="full-width-header">
         <div className="header-title">Калькулятор синтеза метана (Реакция Сабатье)</div>
       </header>
 
+    <div className="container">
       <BreadCrumbs crumbs={[{ label: ROUTE_LABELS.REAGENTS }]} />
 
       <div className="tools-panel">
@@ -88,5 +89,6 @@ export const ReagentsPage: FC<ReagentsPageProps> = ({ cartItems, addToCart }) =>
         ))}
       </div>
     </div>
+    </>
   );
 };
