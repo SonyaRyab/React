@@ -38,39 +38,30 @@ export const ReagentDetailPage: FC<ReagentDetailPageProps> = () => {
           { label: reagent.name || "Реагент" },
         ]}
       />
-      
-      <div className="wibes-card">
-        <div className="wibes-header">
-          <div className="wibes-avatar">
-            <img src={reagent.img || "/default.jpg"} alt={reagent.name} />
-          </div>
-          <div className="wibes-title-info">
-            <div className="wibes-name">{reagent.name}</div>
-            <div className="wibes-formula">{reagent.formula}</div>
-          </div>
-        </div>
-
-        <div className="wibes-video-wrapper">
-          {reagent.video ? (
-            <video className="wibes-video" autoPlay muted loop playsInline>
-              <source src={reagent.video} type="video/mp4" />
-            </video>
-          ) : (
-            <div className="no-video">Видео недоступно</div>
-          )}
-          
-          <div className="wibes-actions">
-            <div className="wibes-action-btn">
-              <span className="wibes-icon">⚗️</span>
-              <span className="wibes-count">В реакцию</span>
+    
+      <div className="detail-section">
+        <div className="detail-card">
+          <div className="detail-container">
+            <div className="detail-video-wrapper">
+              {reagent.video ? (
+                <video 
+                  className="detail-video" 
+                  autoPlay 
+                  muted 
+                  loop 
+                  playsInline
+                >
+                  <source src={reagent.video} type="video/mp4" />
+                </video>
+              ) : (
+                <div className="no-video">Видео недоступно</div>
+              )}
+              
+              <div className="detail-video-info">
+                <div className="detail-desc">{reagent.description}</div>
+                <div className="detail-desc">Молярная масса: {reagent.molar_mass} г/моль</div>
+              </div>
             </div>
-          </div>
-        </div>
-
-        <div className="wibes-video-info">
-          <div className="wibes-desc">{reagent.description}</div>
-          <div className="wibes-stats">
-            <span>Молярная масса: {reagent.molar_mass} г/моль</span>
           </div>
         </div>
       </div>
