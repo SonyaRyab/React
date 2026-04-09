@@ -44,9 +44,9 @@ export const ReagentsPage: FC<ReagentsPageProps> = ({ cartItems, addToCart }) =>
 
   return (
     <>
-      <header className="full-width-header">
+      {/* <header className="full-width-header">
         <div className="header-title">Калькулятор синтеза метана (Реакция Сабатье)</div>
-      </header>
+      </header> */}
 
     <div className="container">
       <BreadCrumbs crumbs={[{ label: ROUTE_LABELS.REAGENTS }]} />
