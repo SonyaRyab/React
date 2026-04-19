@@ -1,99 +1,46 @@
-import img1 from '../assets/1.jpg';
-import img2 from '../assets/2.jpg';
-import img3 from '../assets/3.jpg';
-import img4 from '../assets/4.jpg';
-import img5 from '../assets/5.jpg';
-import img6 from '../assets/6.jpg';
-import img7 from '../assets/7.jpg';
-import img8 from '../assets/8.jpg';
-import defaultImg from '../assets/default.jpg'; 
+import h2 from '../assets/hydrogen.png';
+import co2 from '../assets/CO2.png';
+import energy from '../assets/energy.jpg';
+import ni from '../assets/nickel.png';
+// import defaultImg from '../assets/default_image.jpg'; 
 
-export interface IFurniture {
-    id: number;
-    name: string;
-    description: string;
-    price: number;
-    image: string;
-    embedding?: number[]; // Эмбеддинг
-}
+import type { Reagent } from './types';
 
-export const FURNITURE_MOCK: IFurniture[] = [
-    {
-        id: 1,
-        name: "Диван 'Облако'",
-        description: "Soft white three-seater sofa with high-quality upholstery.",
-        price: 45990,
-        image: img1
-    },
-    {
-        id: 2,
-        name: "Кресло 'Ретро'",
-        description: "Comfortable armchair with wooden legs and red upholstery.",
-        price: 12500,
-        image: img2
-    },
-    {
-        id: 3,
-        name: "Стол обеденный",
-        description: "Solid natural oak table. Seats up to 6 people.",
-        price: 28000,
-        image: img3
-    },
-    {
-        id: 4,
-        name: "Стул пластиковый",
-        description: "Gray plastic chair with plastic legs.",
-        price: 3500,
-        image: img4
-    },
-    {
-        id: 5,
-        name: "Торшер напольный",
-        description: "Gray metal loft-style floor lamp.",
-        price: 5900,
-        image: img5
-    },
-    {
-        id: 6,
-        name: "Комод белый",
-        description: "White dresser with three handle-less drawers.",
-        price: 15990,
-        image: img6
-    },
-    {
-        id: 7,
-        name: "Кровать двуспальная",
-        description: "White double bed with a padded headboard.",
-        price: 32000,
-        image: img7
-    },
-    {
-        id: 8,
-        name: "Полка настенная",
-        description: "Wooden shelf with an unusual S-shaped design.",
-        price: 1900,
-        image: img8
-    },
-    // Карточки без картинок. Это показательный пример того, что поиск идет именно по описанию.
-    {
-        id: 9,
-        name: "Шкаф-купе",
-        description: "Large oak sliding-door wardrobe with a full-length mirror.",
-        price: 45000,
-        image: defaultImg
-    },
-    {
-        id: 10,
-        name: "Тумба прикроватная",
-        description: "Small oak bedside table for the bedroom.",
-        price: 4500,
-        image: defaultImg
-    },
-    {
-        id: 11,
-        name: "Зеркало настенное",
-        description: "Round mirror in a gold frame.",
-        price: 3200,
-        image: defaultImg
-    }
+export const REAGENTS_MOCK: Reagent[] = [
+  {
+    id: 1,
+    name: 'Водород',
+    formula: 'H2',
+    description: 'Бесцветный газ, основной реагент реакции Сабатье, используется для восстановления диоксида углерода до метана.',
+    molar_mass: 2.016,
+    img: h2,
+    price: 1200,
+  },
+  {
+    id: 2,
+    name: 'Диоксид углерода',
+    formula: 'CO2',
+    description: 'Исходный реагент реакции Сабатье, взаимодействует с водородом с образованием метана и воды.',
+    molar_mass: 44.01,
+    img: co2,
+    price: 900,
+  },
+  {
+    id: 3,
+    name: 'Энергия',
+    formula: 'E',
+    description: 'Энергия для активации реакции Сабатье. Необходима для нагрева реактора до рабочей температуры 300-400°C. Может подаваться в виде электричества, пара или горячего теплоносителя.',
+    molar_mass: 0,
+    img: energy,
+    price: 1500,
+  },
+  {
+    id: 4,
+    name: 'Никелевый катализатор',
+    formula: 'Ni',
+    description: 'Катализатор реакции Сабатье, ускоряет превращение углекислого газа и водорода в метан.',
+    molar_mass: 58.69,
+    img: ni,
+    price: 2500,
+  }
 ];

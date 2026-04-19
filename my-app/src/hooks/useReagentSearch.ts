@@ -1,15 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import type { IFurniture } from '../modules/mock';
+import type { Reagent } from '../modules/types';
 import { cosineSimilarity } from '../modules/math';
 
 // Расширяем интерфейс для UI (добавляем score и видимость)
-export interface IProcessedItem extends IFurniture {
+export interface IProcessedReagent extends Reagent {
     score: number;
     isVisible: boolean;
 }
 
-export const useFurnitureSearch = (initialItems: IFurniture[]) => { 
-    const [items, setItems] = useState<IProcessedItem[]>(
+export const useReagentSearch = (initialItems: Reagent[]) => { 
+    const [items, setItems] = useState<IProcessedReagent []>(
         initialItems.map(item => ({ ...item, score: 0, isVisible: true }))
     );
     

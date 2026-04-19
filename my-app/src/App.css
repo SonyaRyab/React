@@ -58,7 +58,7 @@
   border: 2px dashed #dee2e6;
 }
 
-.furniture-row {
+.my-app-row {
   display: flex;
   gap: 20px;
   padding: 15px;
@@ -70,7 +70,7 @@
   transition: box-shadow 0.2s;
 }
 
-.furniture-row:hover {
+.my-app-row:hover {
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 

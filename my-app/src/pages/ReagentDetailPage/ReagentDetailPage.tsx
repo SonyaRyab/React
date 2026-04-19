@@ -1,0 +1,116 @@
+import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import type { FC } from "react";
+import { BreadCrumbs } from "../../components/BreadCrumbs/BreadCrumbs";
+import { Spinner, Button } from "react-bootstrap";
+import { ROUTES, ROUTE_LABELS } from "../../Routes";
+import { getReagentById } from "../../modules/api";
+import type { Reagent } from "../../modules/types";
+
+interface ReagentDetailPageProps {
+  addToCart?: (reagent: Reagent) => void;
+}
+
+export const ReagentDetailPage: FC<ReagentDetailPageProps> = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const [reagent, setReagent] = useState<Reagent | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+
+    setLoading(true);
+
+    getReagentById(id)
+      .then((data) => {
+        if (data) {
+          setReagent(data);
+        } else {
+          setReagent(null);
+        }
+      })
+      .catch(() => setReagent(null))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="container">
+        <Spinner animation="border" />
+      </div>
+    );
+  }
+
+  if (!reagent) {
+    return (
+      <div className="container">
+        <BreadCrumbs
+          crumbs={[
+            { label: ROUTE_LABELS.REAGENTS, path: ROUTES.REAGENTS },
+            { label: "Реагент не найден" },
+          ]}
+        />
+        <h3>Реагент не найден</h3>
+        <Button className="back-button" onClick={() => navigate(ROUTES.REAGENTS)}>
+          Назад к списку
+        </Button>
+      </div>
+    );
+  }
+
+   return (
+    <div>
+      <BreadCrumbs
+        crumbs={[
+          { label: ROUTE_LABELS.REAGENTS, path: ROUTES.REAGENTS },
+          { label: reagent.name || "Реагент" },
+        ]}
+      />
+
+      <div className="detail-section">
+        <div className="detail-card">
+          <div className="detail-container">
+            <div className="detail-video-wrapper">
+              {reagent.video ? (
+                <video
+                  className="detail-video"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                >
+                  <source src={reagent.video} type="video/mp4" />
+                </video>
+              ) : reagent.img ? (
+                <img
+                  src={reagent.img}
+                  alt={reagent.name}
+                  className="detail-video"
+                />
+              ) : (
+                <div className="no-video">Изображение недоступно</div>
+              )}
+
+              <div className="detail-video-info">
+                <div className="detail-desc">{reagent.description}</div>
+                <div className="detail-desc">Формула: {reagent.formula}</div>
+                <div className="detail-desc">
+                  Молярная масса: {reagent.molar_mass} г/моль
+                </div>
+                {reagent.price !== undefined && (
+                  <div className="detail-desc">Цена: {reagent.price} ₽</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Button className="back-button" onClick={() => navigate(-1)}>
+        Назад
+      </Button>
+    </div>
+  );
+};
