@@ -6,6 +6,7 @@ import { Spinner, Button } from "react-bootstrap";
 import { ROUTES, ROUTE_LABELS } from "../../Routes";
 import { getReagentById } from "../../modules/api";
 import type { Reagent } from "../../modules/types";
+import "./ReagentDetailPage.css"; 
 
 interface ReagentDetailPageProps {
   addToCart?: (reagent: Reagent) => void;
