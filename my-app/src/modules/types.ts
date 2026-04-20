@@ -7,6 +7,8 @@ export interface Reagent {
   video?: string;
   description?: string;
   molar_mass?: number;
+  price?: number;
+
 }
 
 export interface MethaneReagent {

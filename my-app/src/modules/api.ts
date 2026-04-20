@@ -1,6 +1,6 @@
 import type { Reagent } from "./types";
 
-const API_BASE = "/api";
+const API_BASE = '/api';
 
 export const getReagents = async (search = ""): Promise<Reagent[]> => {
   const response = await fetch(`${API_BASE}/reagents?search=${encodeURIComponent(search)}`);

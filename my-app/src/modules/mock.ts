@@ -16,6 +16,7 @@ export const REAGENTS_MOCK: Reagent[] = [
     molar_mass: 2.016,
     img: hydrogenImg,
     video: video,
+    price: 1200,
   },
   {
     id: 2,
@@ -25,6 +26,7 @@ export const REAGENTS_MOCK: Reagent[] = [
     molar_mass: 44.01,
     img: co2Img,
     video: video,
+    price: 900,
   },
   {
     id: 3,
@@ -34,6 +36,7 @@ export const REAGENTS_MOCK: Reagent[] = [
     molar_mass: 58.69,
     img: nickelImg,
     video: video,
+    price: 1500,
   },
   {
     id: 4,
@@ -43,5 +46,6 @@ export const REAGENTS_MOCK: Reagent[] = [
     molar_mass: 0,
     img: defaultImage,
     video: video,
+    price: 2500,
   },
 ];
