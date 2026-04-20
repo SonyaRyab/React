@@ -30,7 +30,7 @@ export const useReagentSearch = (initialItems: Reagent[]) => {
 
             switch (type) {
                 case 'progress':
-                    if (data.status === 'progress') setProgress(data.progress);
+                    if (data.status === 'progress') setProgress(data.progress ?? 0);
                     else if (data.status === 'ready') setReady(true);
                     break;
                 
@@ -59,7 +59,7 @@ export const useReagentSearch = (initialItems: Reagent[]) => {
 
         setItems(prevItems => {
             // Если вектора описаний еще не посчитаны, нет смысла искать
-            if (!prevItems[0].embedding) return prevItems;
+            if (!prevItems.length || !prevItems[0].embedding) return prevItems;
 
             const threshold = 0.005;
 

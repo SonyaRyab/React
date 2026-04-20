@@ -30,11 +30,11 @@ export const MethanePage: FC<MethanePageProps> = ({ cartItems, removeFromCart, c
     <div className="container">
       <BreadCrumbs crumbs={[{ label: ROUTE_LABELS.METHANE }]} />
       
-      <header className="full-width-header">
+      {/* <header className="full-width-header">
         <div className="header-title" style={{ color: '#F59E0B' }}>
           Заявка
         </div>
-      </header>
+      </header> */}
 
       <div className="table-header-card">
         <div className="table-header-row">

@@ -29,6 +29,25 @@ class SiglipService {
             this.visionModel = await SiglipVisionModel.from_pretrained(MODEL_ID, {...options, progress_callback });
         }
     }
+    
+    static async getTextEmbeddings(texts: string[]) {
+        const textInputs = await this.tokenizer(texts, {
+        padding: "max_length",
+        truncation: true,
+        });
+
+        const { pooler_output } = await this.textModel(textInputs);
+        const embeddingSize = 768;
+        const result: number[][] = [];
+
+        for (let i = 0; i < texts.length; i++) {
+        const start = i * embeddingSize;
+        const end = start + embeddingSize;
+        result.push(Array.from(pooler_output.data.slice(start, end)));
+        }
+
+        return result;
+    }
 }
 
 self.addEventListener('message', async (event) => {
@@ -40,32 +59,13 @@ self.addEventListener('message', async (event) => {
                 self.postMessage({ type: 'progress', data: msg });
             });
 
-            const items = data;
+            const items = data as { id: number; description: string }[];
+            const descriptions = items.map((item) => item.description);
+            const vectors = await SiglipService.getTextEmbeddings(descriptions);
+
             const embeddings: Record<number, number[]> = {};
-
-            // Все описания РАЗОМ
-            const descriptions = items.map((item: any) => item.description);
-            
-            // max_length нужен для одинаковой длины 
-            const text_inputs = await SiglipService.tokenizer(descriptions, { 
-                padding: 'max_length', 
-                truncation: true,
-            });
-
-            // Получаем выход текстовой модели, мы заэмбеддили все описания за раз, сделав 1 эмбеддинг
-            const { pooler_output: textOutput } = await SiglipService.textModel(text_inputs);
-
-            // Размерность выхода SigLIP base = 768
-            const embeddingSize = 768; 
-
             for (let i = 0; i < items.length; i++) {
-                const start = i * embeddingSize;
-                const end = start + embeddingSize;
-                // Этот кусок - вектор для одного описания
-                const textVector = textOutput.data.slice(start, end);
-                
-                const itemId = items[i].id; 
-                embeddings[itemId] = Array.from(textVector);
+                embeddings[items[i].id] = vectors[i];
             }
 
             self.postMessage({ type: 'text_embeddings_ready', data: embeddings });
@@ -73,8 +73,10 @@ self.addEventListener('message', async (event) => {
 
         // Если загрузили картинку
         if (type === 'image') {
+            await SiglipService.init();
+
             // Считываем
-            const imageUrl = URL.createObjectURL(data); 
+            const imageUrl = URL.createObjectURL(data as File); 
             // RawImage - утилита для работы с изображениями, без нее процессор может воспринять картинку как текст, и visionModel выдаст ошибку
             const image = await RawImage.read(imageUrl);
             
