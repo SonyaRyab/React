@@ -1,11 +1,13 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { FC } from "react";
 import { BreadCrumbs } from "../../components/BreadCrumbs/BreadCrumbs";
 import { Spinner, Button } from "react-bootstrap";
 import { ROUTES, ROUTE_LABELS } from "../../Routes";
-import { getReagentById } from "../../modules/api";
+import { getReagentById, getReagents } from "../../modules/api";
 import type { Reagent } from "../../modules/types";
+import { ReagentCard } from "../../components/ReagentCard/ReagentCard";
+
 import "./ReagentDetailPage.css"; 
 
 interface ReagentDetailPageProps {
@@ -18,6 +20,8 @@ export const ReagentDetailPage: FC<ReagentDetailPageProps> = () => {
 
   const [reagent, setReagent] = useState<Reagent | null>(null);
   const [loading, setLoading] = useState(true);
+  const [similarReagents, setSimilarReagents] = useState<Reagent[]>([]);  
+  const workerRef = useRef<Worker | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -35,6 +39,48 @@ export const ReagentDetailPage: FC<ReagentDetailPageProps> = () => {
       .catch(() => setReagent(null))
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    workerRef.current = new Worker(
+      new URL('../../workers/search.worker.ts', import.meta.url),
+      { type: 'module' }
+    );
+
+    workerRef.current.onmessage = (e) => {
+      const { type, data } = e.data;
+
+      if (type === 'similar_ready') {
+        setSimilarReagents(data);
+      }
+    };
+
+    return () => workerRef.current?.terminate();
+  }, []);
+
+  useEffect(() => {
+    if (!reagent) return;
+
+    getReagents()
+      .then((allReagents) => {
+        workerRef.current?.postMessage({
+          type: 'similar',
+          data: {
+            items: allReagents.map((item) => ({
+              id: item.id,
+              description: item.description,
+              name: item.name,
+              formula: item.formula,
+              img: item.img,
+              price: item.price,
+              molar_mass: item.molar_mass,
+            })),
+            currentId: reagent.id,
+            limit: 3,
+          },
+        });
+      })
+      .catch(() => setSimilarReagents([]));
+  }, [reagent]);
 
   if (loading) {
     return (
@@ -108,6 +154,21 @@ export const ReagentDetailPage: FC<ReagentDetailPageProps> = () => {
           </div>
         </div>
       </div>
+
+      {similarReagents.length > 0 && (
+      <div className="similar-section container">
+        <h3>Похожие реагенты</h3>
+        <div className="product-section">
+          {similarReagents.map((item) => (
+            <ReagentCard
+              key={item.id}
+              reagent={item}
+              onClick={() => navigate(`${ROUTES.REAGENTS}/${item.id}`)}
+            />
+          ))}
+        </div>
+      </div>
+      )}
 
       <Button className="back-button" onClick={() => navigate(-1)}>
         Назад
