@@ -153,7 +153,7 @@ export const ReagentsPage: FC<ReagentsPageProps> = ({ cartItems, addToCart }) =>
           </div>
         </div>
 
-        <div style={{ marginBottom: 20 }}>
+        {/* <div style={{ marginBottom: 20 }}>
           <label><b>Мультимодальный поиск по изображению:</b></label>
           <input type="file" accept="image/*" onChange={handleImageSearch} />
           {imageEmbedding && (
@@ -167,7 +167,7 @@ export const ReagentsPage: FC<ReagentsPageProps> = ({ cartItems, addToCart }) =>
             </Button>
           )}
           {!ready && <div>Загрузка модели... {Math.round(progress)}%</div>}
-        </div>
+        </div> */}
 
         {loading && (
           <div className="loadingBg">
