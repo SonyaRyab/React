@@ -16,7 +16,9 @@ export async function getReagents(search = ''): Promise<Reagent[]> {
       throw new Error('Ошибка получения списка реагентов');
     }
 
-    return await response.json();
+    const result = await response.json();
+    return Array.isArray(result) ? result : result.data ?? [];
+
   } catch {
     return REAGENTS_MOCK.filter((r) =>
       r.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -46,7 +48,7 @@ export async function getReagentById(id: string | number): Promise<Reagent | und
 
 export async function getCartIcon(): Promise<{ count: number }> {
   try {
-    const response = await fetch(`${API_URL}/cart/icon`, {
+    const response = await fetch(`${API_URL}/methanes/cart`, {
       method: 'GET',
       headers: {
         Accept: 'application/json',

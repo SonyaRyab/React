@@ -7,6 +7,7 @@ import { ROUTES, ROUTE_LABELS } from "../../Routes";
 import { getReagentById, getReagents } from "../../modules/api";
 import type { Reagent } from "../../modules/types";
 import { ReagentCard } from "../../components/ReagentCard/ReagentCard";
+import { getMediaUrl } from "../../modules/media";
 
 import "./ReagentDetailPage.css"; 
 
@@ -120,26 +121,17 @@ export const ReagentDetailPage: FC<ReagentDetailPageProps> = () => {
         <div className="detail-card">
           <div className="detail-container">
             <div className="detail-video-wrapper">
-              {reagent.video ? (
-                <video
-                  className="detail-video"
-                  autoPlay
-                  muted
-                  loop
+                <video 
+                  className="detail-video" 
+                  autoPlay 
+                  muted 
+                  loop 
                   playsInline
                 >
-                  <source src={reagent.video} type="video/mp4" />
+                  {/* <source src={reagent.video} type="video/mp4" /> */}
+                  <source src="http://localhost:9000/logo/sabatier_reaction.mp4" type="video/mp4" />
                 </video>
-              ) : reagent.img ? (
-                <img
-                  src={reagent.img}
-                  alt={reagent.name}
-                  className="detail-video"
-                />
-              ) : (
-                <div className="no-video">Изображение недоступно</div>
-              )}
-
+              
               <div className="detail-video-info">
                 <div className="detail-desc">{reagent.description}</div>
                 <div className="detail-desc">Формула: {reagent.formula}</div>
