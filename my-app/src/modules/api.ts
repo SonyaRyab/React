@@ -27,7 +27,7 @@ export async function getReagents(search = ''): Promise<Reagent[]> {
   }
 }
 
-export async function getReagentById(id: string | number): Promise<Reagent | undefined> {
+export async function getReagentById(id: string): Promise<Reagent | null> {
   try {
     const response = await fetch(`${API_URL}/reagents/${id}`, {
       method: 'GET',
@@ -40,7 +40,9 @@ export async function getReagentById(id: string | number): Promise<Reagent | und
       throw new Error('Ошибка получения реагента');
     }
 
-    return await response.json();
+    const result = await response.json();
+    return result.data ?? null;
+    
   } catch {
     return REAGENTS_MOCK.find((r) => r.id === Number(id));
   }

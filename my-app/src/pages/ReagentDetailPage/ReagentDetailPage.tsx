@@ -122,14 +122,17 @@ export const ReagentDetailPage: FC<ReagentDetailPageProps> = () => {
           <div className="detail-container">
             <div className="detail-video-wrapper">
                 <video 
-                  className="detail-video" 
+                  key={getMediaUrl(reagent.video)}
+                  className="detail-video"
+                  src={getMediaUrl(reagent.video)} 
                   autoPlay 
                   muted 
                   loop 
                   playsInline
+                  controls
                 >
-                  {/* <source src={reagent.video} type="video/mp4" /> */}
-                  <source src="http://localhost:9000/logo/sabatier_reaction.mp4" type="video/mp4" />
+                {/* <source src={getMediaUrl(reagent.video)} type="video/mp4" /> */}
+                  {/* <source src="http://localhost:9000/logo/sabatier_reaction.mp4" type="video/mp4" /> */}
                 </video>
               
               <div className="detail-video-info">
