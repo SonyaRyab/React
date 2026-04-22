@@ -60,7 +60,7 @@ export const ReagentsPage: FC<ReagentsPageProps> = ({ cartItems, addToCart }) =>
 
   const visibleItems = imageEmbedding
     ? searchedItems.filter((item) => item.isVisible)
-    : reagents;
+    : searchedItems;
 
   const handleImageSearch = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -96,7 +96,7 @@ export const ReagentsPage: FC<ReagentsPageProps> = ({ cartItems, addToCart }) =>
           </div>
         </div>
 
-        {/* <div style={{ marginBottom: 20 }}>
+        <div style={{ marginBottom: 20 }}>
           <label><b>Мультимодальный поиск по изображению:</b></label>
           <input type="file" accept="image/*" onChange={handleImageSearch} />
           {imageEmbedding && (
@@ -110,7 +110,7 @@ export const ReagentsPage: FC<ReagentsPageProps> = ({ cartItems, addToCart }) =>
             </Button>
           )}
           {!ready && <div>Загрузка модели... {Math.round(progress)}%</div>}
-        </div> */}
+        </div> 
 
         {loading && (
           <div className="loadingBg">
@@ -127,6 +127,7 @@ export const ReagentsPage: FC<ReagentsPageProps> = ({ cartItems, addToCart }) =>
               onClick={() => navigate(`${ROUTES.REAGENTS}/${reagent.id}`)}
               onAddToCart={() => addToCart(reagent)}
               isInCart={cartItems.some((item) => item.id === reagent.id)}
+              similarityPercent={imageEmbedding ? reagent.score * 100 : undefined}
             />
           ))}
         </div>

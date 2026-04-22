@@ -1,112 +1,156 @@
 import { useState, useRef, useEffect } from 'react';
 import type { Reagent } from '../modules/types';
 import { cosineSimilarity } from '../modules/math';
+import { getMediaUrl } from '../modules/media';
 
-// Расширяем интерфейс для UI (добавляем score и видимость)
 export interface IProcessedReagent extends Reagent {
-    score: number;
-    isVisible: boolean;
+  score: number;
+  isVisible: boolean;
+  embedding?: number[];
+  imageEmbedding?: number[];
 }
 
-export const useReagentSearch = (initialItems: Reagent[]) => { 
-    const [items, setItems] = useState<IProcessedReagent []>(
-        initialItems.map(item => ({ ...item, score: 0, isVisible: true }))
+export const useReagentSearch = (initialItems: Reagent[]) => {
+  const [items, setItems] = useState<IProcessedReagent[]>(
+    initialItems.map(item => ({
+      ...item,
+      img: getMediaUrl(item.img),
+      score: 0,
+      isVisible: true,
+    }))
+  );
+
+  const [imageEmbedding, setImageEmbedding] = useState<number[] | null>(null);
+  const [ready, setReady] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  const workerRef = useRef<Worker | null>(null);
+
+  useEffect(() => {
+    const normalizedItems: IProcessedReagent[] = initialItems.map(item => ({
+      ...item,
+      img: getMediaUrl(item.img),
+      score: 0,
+      isVisible: true,
+    }));
+
+    setItems(normalizedItems);
+    setReady(false);
+    setProgress(0);
+
+    workerRef.current?.terminate();
+
+    workerRef.current = new Worker(
+      new URL('../workers/search.worker.ts', import.meta.url),
+      { type: 'module' }
     );
-    
-    const [imageEmbedding, setImageEmbedding] = useState<number[] | null>(null);
-    const [ready, setReady] = useState(false);
-    const [progress, setProgress] = useState(0);
-    
-    const workerRef = useRef<Worker | null>(null);
 
-    // 1. Инициализация и получение текстовых векторов
-    useEffect(() => {
-        workerRef.current = new Worker(new URL('../workers/search.worker.ts', import.meta.url), {
-            type: 'module'
-        });
+    workerRef.current.onmessage = (e) => {
+      const { type, data } = e.data;
 
-        workerRef.current.onmessage = (e) => {
-            const { type, data } = e.data;
+      switch (type) {
+        case 'progress':
+          if (data.status === 'progress') {
+            setProgress(data.progress ?? 0);
+          } else if (data.status === 'ready') {
+            setProgress(100);
+            setReady(true);
+          }
+          break;
 
-            switch (type) {
-                case 'progress':
-                    if (data.status === 'progress') setProgress(data.progress ?? 0);
-                    else if (data.status === 'ready') setReady(true);
-                    break;
-                
-                case 'text_embeddings_ready':
-                    setItems(prev => prev.map(item => ({
-                        ...item,
-                        embedding: data[item.id]
-                    })));
-                    setReady(true);
-                    break;
+        case 'init_embeddings_ready': {
+          const { textEmbeddings, imageEmbeddings } = data;
 
-                case 'image_embedding_ready':
-                    setImageEmbedding(data);
-                    break;
-            }
+          setItems(prev =>
+            prev.map(item => ({
+              ...item,
+              embedding: textEmbeddings[item.id],
+              imageEmbedding: imageEmbeddings[item.id],
+            }))
+          );
+
+          setReady(true);
+          break;
+        }
+
+        case 'image_embedding_ready':
+          setImageEmbedding(data);
+          break;
+
+        case 'error':
+          console.error('Worker error:', data);
+          break;
+      }
+    };
+
+    workerRef.current.postMessage({
+      type: 'init',
+      data: normalizedItems.map(item => ({
+        id: item.id,
+        description: item.description,
+        img: item.img,
+      })),
+    });
+
+    return () => workerRef.current?.terminate();
+  }, [initialItems]);
+
+  useEffect(() => {
+    if (!imageEmbedding) return;
+
+    setItems(prevItems => {
+      if (!prevItems.length) return prevItems;
+
+      const threshold = 0.15;
+
+      const processed = prevItems.map(item => {
+        if (!item.imageEmbedding) {
+          return {
+            ...item,
+            score: 0,
+            isVisible: false,
+          };
+        }
+
+        const similarity = cosineSimilarity(imageEmbedding, item.imageEmbedding);
+
+        return {
+          ...item,
+          score: similarity,
+          isVisible: similarity > threshold,
         };
+      });
 
-        workerRef.current.postMessage({ type: 'init', data: initialItems });
+      processed.sort((a, b) => b.score - a.score);
+      return processed;
+    });
+  }, [imageEmbedding]);
 
-        return () => workerRef.current?.terminate();
-    }, [initialItems]);
+  const searchByImage = (file: File) => {
+    workerRef.current?.postMessage({ type: 'image', data: file });
+  };
 
-    // 2. Логика поиска и сортировки
-    useEffect(() => {
-        if (!imageEmbedding) return;
+  const resetSearch = () => {
+    setImageEmbedding(null);
 
-        setItems(prevItems => {
-            // Если вектора описаний еще не посчитаны, нет смысла искать
-            if (!prevItems.length || !prevItems[0].embedding) return prevItems;
+    const normalizedItems: IProcessedReagent[] = initialItems
+      .map(item => ({
+        ...item,
+        img: getMediaUrl(item.img),
+        score: 0,
+        isVisible: true,
+      }))
+      .sort((a, b) => a.id - b.id);
 
-            const threshold = 0.005;
+    setItems(normalizedItems);
+  };
 
-            const processed = prevItems.map(item => {
-                if (!item.embedding) return item; 
-                
-                const similarity = cosineSimilarity(imageEmbedding, item.embedding);
-                
-                return {
-                    ...item,
-                    score: similarity,
-                    isVisible: similarity > threshold
-                };
-            });
-
-            // Сортировка по убыванию рейтинга
-            processed.sort((a, b) => b.score - a.score);
-            
-            return processed;
-        });
-
-    }, [imageEmbedding]);
-
-    // 3. Методы управления
-    const searchByImage = (file: File) => {
-        workerRef.current?.postMessage({ type: 'image', data: file });
-    };
-
-    const resetSearch = () => {
-        setImageEmbedding(null);
-        // Сброс: возвращаем исходный порядок (по ID), обнуляем score
-        setItems(prev => {
-            const sortedById = [...prev].sort((a, b) => a.id - b.id);
-            return sortedById.map(item => ({
-                ...item,
-                score: 0,
-                isVisible: true
-            }));
-        });
-    };
-
-    return {
-        items,
-        ready,
-        progress,
-        imageEmbedding,
-        searchByImage,
-        resetSearch
-    };
+  return {
+    items,
+    ready,
+    progress,
+    imageEmbedding,
+    searchByImage,
+    resetSearch,
+  };
 };

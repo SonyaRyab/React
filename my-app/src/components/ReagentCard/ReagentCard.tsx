@@ -10,9 +10,10 @@ interface Props {
   onClick?: () => void;
   onAddToCart?: () => void;
   isInCart?: boolean;
+  similarityPercent?: number;
 }
 
-export const ReagentCard: FC<Props> = ({ reagent, onClick, onAddToCart, isInCart }) => (
+export const ReagentCard: FC<Props> = ({ reagent, onClick, onAddToCart, isInCart, similarityPercent }) => (
   <Card className="reagent-card" onClick={onClick} style={{ cursor: "pointer" }}>
     <div className="product-title-container">
       <Card.Title className="product-name">{reagent.name}</Card.Title>
@@ -24,6 +25,12 @@ export const ReagentCard: FC<Props> = ({ reagent, onClick, onAddToCart, isInCart
     />
     <Card.Body>
       <div className="product-formula">{reagent.formula}</div>
+      {typeof similarityPercent === 'number' && (
+        <div style={{ marginBottom: 12, fontWeight: 600, color: '#0d6efd' }}>
+          Схожесть: {Math.round(similarityPercent)}%
+        </div>
+      )}
+
       <Button 
         className={`add-to-cart ${isInCart ? 'in-cart' : ''}`}
         onClick={(e) => {
