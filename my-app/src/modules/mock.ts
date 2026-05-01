@@ -2,7 +2,7 @@ import type { Reagent } from "./types";
 import hydrogenImg from "../assets/hydrogen.png";
 import co2Img from "../assets/CO2.png";
 import nickelImg from "../assets/nickel.png";
-// import energyImg from "../assets/energy.jpg";
+import energyImg from "../assets/energy.jpg";
 import video from "../assets/sabatier_reaction.mp4";
 import defaultImage from "../assets/DefaultImage.jpg";
 
@@ -44,7 +44,7 @@ export const REAGENTS_MOCK: Reagent[] = [
     formula: "E",
     description: "Энергия в реакции",
     molar_mass: 0,
-    img: defaultImage,
+    img: energyImg,
     video: video,
     price: 2500,
   },

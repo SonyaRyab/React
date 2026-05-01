@@ -4,6 +4,7 @@ import { BreadCrumbs } from "../../components/BreadCrumbs/BreadCrumbs";
 import { ROUTES, ROUTE_LABELS } from "../../Routes";
 import type { Reagent } from "../../modules/types";
 import { useNavigate } from "react-router-dom";
+import defaultImage from "../../assets/DefaultImage.jpg";
 
 interface MethanePageProps {
   cartItems: Reagent[];
@@ -49,7 +50,7 @@ export const MethanePage: FC<MethanePageProps> = ({ cartItems, removeFromCart, c
         {cartItems.map((reagent, index) => (
           <div className="table-data-row" key={`${reagent.id}-${index}`}>
             <div className="data-cell">
-              <img src={reagent.img || "/default.jpg"} alt={reagent.name} width="50" height="50" />
+              <img src={reagent.img || defaultImage} alt={reagent.name} width="50" height="50" />
             </div>
             <div className="data-cell">{reagent.name}</div>
             <div className="data-cell reagent-formula">{reagent.formula}</div>
