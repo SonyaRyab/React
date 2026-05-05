@@ -99,9 +99,10 @@ export const logoutUserAsync = createAsyncThunk<
   boolean,
   void,
   { rejectValue: string; dispatch: any; state: any }
->('user/logoutUserAsync', async (_, { getState, dispatch, rejectWithValue }) => {
-    try {
-    const token = getState().user.token;
+>('user/logoutUserAsync', async (_, { getState, dispatch }) => {
+  const token = getState().user.token;
+
+  try {
     if (token) {
       await api.auth.authLogoutCreate(undefined, {
         headers: {
@@ -109,17 +110,18 @@ export const logoutUserAsync = createAsyncThunk<
         },
       } as any);
     }
-    dispatch(resetApplicationsFilters());
-    return true;
 
-  } catch {
-    dispatch(resetApplicationsFilters());
-    return rejectWithValue(
-      error?.response?.data?.error ||
-        error?.response?.data?.message ||
-        'Ошибка выхода'
-    );
+  } catch (error) {
+    // dispatch(resetApplicationsFilters());
+    // return rejectWithValue(
+    //   error?.response?.data?.error ||
+    //   error?.response?.data?.message ||
+    //   'Ошибка выхода'
+    // );
+    console.log("Ошибка выхода", error);
   }
+  dispatch(resetApplicationsFilters());
+  return true;
 });
 
 const userSlice = createSlice({

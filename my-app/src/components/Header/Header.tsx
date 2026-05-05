@@ -67,7 +67,7 @@ const Header = () => {
               </Nav.Link>
             )}
 
-            <Nav.Link
+            {/* <Nav.Link
               as={Link}
               to={
                 appid
@@ -78,15 +78,15 @@ const Header = () => {
               className={!appid ? 'disabled-draft-link' : ''}
             >
               Заявка {count > 0 && <Badge bg="danger">{count}</Badge>}
-            </Nav.Link>
+            </Nav.Link> */}
           </Nav>
 
           <Nav className="align-items-center gap-2">
-            {isAuthenticated && username && (
+            {/* {isAuthenticated && username && (
               <Navbar.Text className="app-navbar-username">
                 {username}
               </Navbar.Text>
-            )}
+            )} */}
 
             {!isAuthenticated ? (
               <>
