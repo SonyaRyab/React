@@ -38,11 +38,11 @@ export const AppNavbar: FC<AppNavbarProps> = ({ cartCount = 0 }) => {
               Главная
             </Nav.Link>
             <Nav.Link as={Link} to={ROUTES.REAGENTS}>
-              Каталог
+              Каталог реагентов
             </Nav.Link>
           </Nav>
           <Nav>
-            <Nav.Link as={Link} to={ROUTES.METHANE}>
+            <Nav.Link as={Link} to={ROUTES.METHANE_APPLICATION}>
               Заявка {totalCount > 0 && <Badge bg="danger">{totalCount}</Badge>}
             </Nav.Link>
           </Nav>

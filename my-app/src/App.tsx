@@ -4,7 +4,12 @@ import { Route, Routes, Navigate } from 'react-router-dom';
 import { ReagentsPage } from './pages/ReagentsPage/ReagentsPage';
 import { ReagentDetailPage } from './pages/ReagentDetailPage/ReagentDetailPage';
 import LoginPage from './pages/LoginPage/LoginPage';
+import RegisterPage from './pages/RegisterPage/RegisterPage';
 import MethaneApplicationPage from './pages/MethaneApplicationPage/MethaneApplicationPage';
+import ApplicationsPage from './pages/ApplicationsPage/ApplicationsPage';
+import ModeratorApplicationsPage from './pages/ModeratorApplicationsPage/ModeratorApplicationsPage';
+import ProtectedRoute from './components/ProtectedRoute';
+import { HomePage } from "./pages/HomePage/HomePage";
 import { ROUTES } from './Routes';
 
 function App() {
@@ -12,11 +17,15 @@ function App() {
     <Routes>
       <Route 
         path={ROUTES.HOME} 
-        element={<Navigate to={ROUTES.REAGENTS} replace />} 
+        element={<HomePage />}
       />
       <Route 
         path={ROUTES.LOGIN} 
         element={<LoginPage />} 
+      />
+      <Route 
+      path={ROUTES.REGISTER} 
+      element={<RegisterPage />} 
       />
       <Route 
         path={ROUTES.REAGENTS} 
@@ -33,6 +42,22 @@ function App() {
       <Route
         path={`${ROUTES.METHANE_APPLICATION}/:app_id`}
         element={<MethaneApplicationPage />}
+      />
+      <Route
+        path={ROUTES.APPLICATIONS}
+        element={
+          <ProtectedRoute allowedRoles={['researcher']}>
+            <ApplicationsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.MODERATOR_APPLICATIONS}
+        element={
+          <ProtectedRoute allowedRoles={['professor', 'admin']}>
+            <ModeratorApplicationsPage />
+          </ProtectedRoute>
+        }
       />
     </Routes>
   );

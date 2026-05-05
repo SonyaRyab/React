@@ -3,12 +3,14 @@ import { configureStore } from "@reduxjs/toolkit";
 import reagentsReducer from './slices/reagentsSlice';
 import userReducer from './slices/userSlice'; 
 import methaneApplicationDraftReducer from './slices/methaneApplicationDraftSlice';
+import applicationsReducer from './slices/applicationsSlice';
 
 export const store = configureStore({
     reducer: {
         reagents: reagentsReducer,
         user: userReducer,  
-        methaneApplicationDraft: methaneApplicationDraftReducer,      
+        methaneApplicationDraft: methaneApplicationDraftReducer,
+        applications: applicationsReducer, 
     },
 })
 

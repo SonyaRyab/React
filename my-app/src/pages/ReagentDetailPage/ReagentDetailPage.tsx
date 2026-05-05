@@ -8,6 +8,7 @@ import { getReagentById, getReagents } from "../../modules/api";
 import type { Reagent } from "../../modules/types";
 import { ReagentCard } from "../../components/ReagentCard/ReagentCard";
 import { getMediaUrl } from "../../modules/media";
+import Header from "../../components/Header/Header";
 
 import "./ReagentDetailPage.css"; 
 
@@ -93,6 +94,8 @@ export const ReagentDetailPage: FC<ReagentDetailPageProps> = () => {
 
   if (!reagent) {
     return (
+      <div>
+      <Header />
       <div className="container">
         <BreadCrumbs
           crumbs={[
@@ -105,11 +108,13 @@ export const ReagentDetailPage: FC<ReagentDetailPageProps> = () => {
           Назад к списку
         </Button>
       </div>
+      </div>
     );
   }
 
    return (
     <div>
+      <Header />
       <BreadCrumbs
         crumbs={[
           { label: ROUTE_LABELS.REAGENTS, path: ROUTES.REAGENTS },

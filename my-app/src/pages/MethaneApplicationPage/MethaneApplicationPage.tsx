@@ -11,6 +11,7 @@ import {
 } from '../../slices/methaneApplicationDraftSlice';
 import { BreadCrumbs } from '../../components/BreadCrumbs/BreadCrumbs';
 import { ROUTE_LABELS } from '../../Routes';
+import './MethaneApplicationPage.css';
 
 export const MethaneApplicationPage: FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -32,17 +33,17 @@ export const MethaneApplicationPage: FC = () => {
   );
 
   return (
-    <div>
+    <div className="methane-page-root">
       <Header />
 
-      <div className="container mt-4">
-        <h1>Заявка на синтез метана</h1>
+      <div className="container methane-page-container">
+        <h1 className="methane-page-title">Заявка на синтез метана</h1>
         {error && <Alert variant="danger">{error}</Alert>}
 
         <BreadCrumbs crumbs={[{ label: ROUTE_LABELS.METHANE_APPLICATION }]} />
 
         {isDraft && (
-          <div className="mb-4">
+          <div className="methane-page-form-block">
             <Form.Group className="mb-3">
               <Form.Label>Название процесса</Form.Label>
               <Form.Control
@@ -63,7 +64,7 @@ export const MethaneApplicationPage: FC = () => {
               />
             </Form.Group>
 
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-0">
               <Form.Label>Комментарий</Form.Label>
               <Form.Control
                 as="textarea"
@@ -79,69 +80,75 @@ export const MethaneApplicationPage: FC = () => {
         {reagents.length === 0 ? (
           <Alert variant="secondary">Черновик заявки пуст.</Alert>
         ) : (
-          <Table striped bordered hover>
-            <thead>
-              <tr>
-                <th>Реагент</th>
-                <th>Формула</th>
-                <th>Цена</th>
-                <th>Количество</th>
-                <th>Сумма</th>
-                {isDraft && <th>Действия</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {reagents.map((item) => (
-                <tr key={item.reagent.id}>
-                  <td>{item.reagent.name}</td>
-                  <td>{item.reagent.formula}</td>
-                  <td>{item.reagent.price ?? 0} ₽</td>
-                  <td style={{ width: 140 }}>
-                    {isDraft ? (
-                      <Form.Control
-                        type="number"
-                        min={1}
-                        value={item.count}
-                        onChange={(e) =>
-                          dispatch(
-                            updateReagentCount({
-                              reagentId: item.reagent.id,
-                              count: Number(e.target.value),
-                            })
-                          )
-                        }
-                      />
-                    ) : (
-                      item.count
-                    )}
-                  </td>
-                  <td>{(item.reagent.price ?? 0) * item.count} ₽</td>
-                  {isDraft && (
-                    <td>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() =>
-                          dispatch(removeReagentFromMethaneApplication(item.reagent.id))
-                        }
-                      >
-                        Удалить
-                      </Button>
-                    </td>
-                  )}
+          <div className="methane-page-table-wrapper">
+            <Table striped bordered hover responsive>
+              <thead>
+                <tr>
+                  <th>Реагент</th>
+                  <th>Формула</th>
+                  <th>Цена</th>
+                  <th>Количество</th>
+                  <th>Сумма</th>
+                  {isDraft && <th>Действия</th>}
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {reagents.map((item) => (
+                  <tr key={item.reagent.id}>
+                    <td>{item.reagent.name}</td>
+                    <td>{item.reagent.formula}</td>
+                    <td>{item.reagent.price ?? 0} ₽</td>
+                    <td className="methane-qty-cell">
+                      {isDraft ? (
+                        <Form.Control
+                          type="number"
+                          min={1}
+                          value={item.count}
+                          onChange={(e) =>
+                            dispatch(
+                              updateReagentCount({
+                                reagentId: item.reagent.id,
+                                count: Number(e.target.value),
+                              })
+                            )
+                          }
+                        />
+                      ) : (
+                        item.count
+                      )}
+                    </td>
+                    <td>{(item.reagent.price ?? 0) * item.count} ₽</td>
+                    {isDraft && (
+                      <td>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() =>
+                            dispatch(
+                              removeReagentFromMethaneApplication(item.reagent.id)
+                            )
+                          }
+                        >
+                          Удалить
+                        </Button>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </div>
         )}
 
-        <h4>Итоговая стоимость: {totalPrice} ₽</h4>
+        <h4 className="methane-total">Итоговая стоимость: {totalPrice} ₽</h4>
 
-        <div className="d-flex gap-2 mt-3">
+        <div className="methane-actions">
           {isDraft && app_id && (
             <Button
               variant="outline-danger"
-              onClick={() => dispatch(clearMethaneApplicationOnServer(String(app_id)))}
+              onClick={() =>
+                dispatch(clearMethaneApplicationOnServer(String(app_id)))
+              }
             >
               Удалить заявку
             </Button>

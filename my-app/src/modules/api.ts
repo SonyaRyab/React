@@ -1,7 +1,7 @@
 import { REAGENTS_MOCK } from './mock';
 import type { Reagent } from './types';
 
-const API_URL = '/api';
+const API_URL = 'http://localhost:8080/api';
 
 export async function getReagents(search = ''): Promise<Reagent[]> {
   try {
@@ -41,7 +41,7 @@ export async function getReagentById(id: string): Promise<Reagent | null> {
     }
 
     const result = await response.json();
-    return result.data ?? null;
+    return result.data ?? result ?? null;
     
   } catch {
     return REAGENTS_MOCK.find((r) => r.id === Number(id)) ?? null;

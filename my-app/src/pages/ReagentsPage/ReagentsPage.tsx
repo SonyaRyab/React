@@ -12,10 +12,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
 import { getReagentsList, setSearchValue } from '../../slices/reagentsSlice';
 import { addReagentToMethaneApplication } from '../../slices/methaneApplicationDraftSlice';
+import Header from "../../components/Header/Header";
 
 export const ReagentsPage: FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+
+  const appid = useSelector(
+    (state: RootState) => state.methaneApplicationDraft.appid
+  );
 
   const { searchValue, reagents, loading } = useSelector(
     (state: RootState) => state.reagents
@@ -54,6 +59,8 @@ export const ReagentsPage: FC = () => {
   };
 
   return (
+    <>
+    <Header />
     <div className="container">
       <BreadCrumbs crumbs={[{ label: ROUTE_LABELS.REAGENTS }]} />
       <div className="tools-panel">
@@ -71,7 +78,11 @@ export const ReagentsPage: FC = () => {
           </div>
         </div>
         <div className={`calculate-btn ${draftItems.length > 0 ? 'cart-active' : 'cart-disabled'}`}
-          onClick={() => navigate(ROUTES.METHANE_APPLICATION)}
+          onClick={() => navigate( 
+            appid
+              ? `${ROUTES.METHANE_APPLICATION}/${appid}`
+              : ROUTES.METHANE_APPLICATION
+          )}
           style={{ cursor: 'pointer' }}>
           <span className="cart-badge">{draftItems.reduce((sum, item) => sum + item.count, 0)}</span>
           <svg className="cart-icon" viewBox="0 0 24 24">
@@ -115,5 +126,6 @@ export const ReagentsPage: FC = () => {
         ))}
       </div>
     </div>
+    </>
   );
 };

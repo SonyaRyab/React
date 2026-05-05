@@ -31,11 +31,18 @@ export interface AppLoginReq {
   password?: string;
 }
 
+export interface AppLoginResp {
+  access_token?: string;
+  expires_in?: number;
+  login?: string;
+  token_type?: string;
+  username?: string;
+}
+
 export interface AppRegisterReq {
   login?: string;
   name?: string;
   pass?: string;
-  role?: string;
 }
 
 export interface AppRegisterResp {
@@ -143,7 +150,7 @@ export class HttpClient<SecurityDataType = unknown> {
   }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      baseURL: axiosConfig.baseURL || "http://localhost:8080",
+      baseURL: axiosConfig.baseURL || "",
     });
     this.secure = secure;
     this.format = format;
@@ -255,13 +262,12 @@ export class HttpClient<SecurityDataType = unknown> {
 }
 
 /**
- * @title BITOP
+ * @title Lab4 API
  * @version 1.0
- * @license AS IS (NO WARRANTY)
- * @baseUrl http://localhost:8080
- * @contact API Support <bitop@spatecon.ru> (https://vk.com/bmstu_schedule)
+ * @license AS IS
+ * @contact API Support
  *
- * Bmstu Open IT Platform
+ * API with JWT Auth
  */
 export class Api<
   SecurityDataType extends unknown,
@@ -394,15 +400,15 @@ export class Api<
   };
   auth = {
     /**
-     * @description Создаёт серверную сессию в Redis и устанавливает cookie session_id
+     * @description Аутентификация через JWT, возвращает access_token
      *
      * @tags auth
      * @name LoginCreate
-     * @summary Вход пользователя
+     * @summary Вход пользователя (JWT)
      * @request POST:/auth/login
      */
     loginCreate: (input: AppLoginReq, params: RequestParams = {}) =>
-      this.request<Record<string, any>, Record<string, any>>({
+      this.request<AppLoginResp, Record<string, any>>({
         path: `/auth/login`,
         method: "POST",
         body: input,
@@ -412,7 +418,25 @@ export class Api<
       }),
 
     /**
-     * @description Создаёт нового пользователя-исследователя
+     * @description Добавляет текущий JWT в blacklist Redis
+     *
+     * @tags auth
+     * @name LogoutCreate
+     * @summary Выход (Blacklist JWT)
+     * @request POST:/auth/logout
+     * @secure
+     */
+    logoutCreate: (params: RequestParams = {}) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/auth/logout`,
+        method: "POST",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Создаёт нового пользователя
      *
      * @tags auth
      * @name RegisterCreate
