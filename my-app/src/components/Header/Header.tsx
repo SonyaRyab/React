@@ -71,7 +71,7 @@ const Header = () => {
               </Nav.Link>
             )}
 
-            {isAuthenticated && (
+            {/* {isAuthenticated && (
               <Nav.Link
                 as={Link}
                 to={draftPath}
@@ -80,7 +80,7 @@ const Header = () => {
               >
                 Заявка {count > 0 && <Badge bg="danger">{count}</Badge>}
               </Nav.Link>
-            )}
+            )} */}
           </Nav>
 
           <Nav className="align-items-center gap-2">
