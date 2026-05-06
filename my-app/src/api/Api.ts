@@ -10,6 +10,39 @@
  * ---------------------------------------------------------------
  */
 
+export interface AppLoginReq {
+  login?: string;
+  password?: string;
+}
+
+export interface AppLoginResp {
+  accesstoken?: string;
+  expiresin?: number;
+  login?: string;
+  tokentype?: string;
+  username?: string;
+}
+
+export interface AppRegisterReq {
+  login?: string;
+  name?: string;
+  pass?: string;
+}
+
+export interface AppRegisterResp {
+  ok?: boolean;
+}
+
+export interface DsReagent {
+  description?: string;
+  formula?: string;
+  id?: number;
+  img?: string;
+  name?: string;
+  temperature?: number;
+  video?: string;
+}
+
 export enum RoleRole {
   Researcher = "researcher",
   Professor = "professor",
@@ -26,56 +59,6 @@ export interface AppFormMethaneReq {
   temperature?: number;
 }
 
-export interface AppLoginReq {
-  login?: string;
-  password?: string;
-}
-
-export interface AppLoginResp {
-  access_token?: string;
-  expires_in?: number;
-  login?: string;
-  token_type?: string;
-  username?: string;
-}
-
-export interface AppRegisterReq {
-  login?: string;
-  name?: string;
-  pass?: string;
-}
-
-export interface AppRegisterResp {
-  ok?: boolean;
-}
-
-export interface DsMethane {
-  date_create?: string;
-  date_finish?: string;
-  date_update?: string;
-  id?: number;
-  name?: string;
-  professor?: DsUser;
-  reagents?: DsMethaneReagent[];
-  researcher?: DsUser;
-  status?: string;
-}
-
-export interface DsMethaneReagent {
-  methane_yield?: number;
-  quantity?: number;
-}
-
-export interface DsReagent {
-  description?: string;
-  formula?: string;
-  id?: number;
-  img?: string;
-  name?: string;
-  temperature?: number;
-  video?: string;
-}
-
 export interface DsUser {
   email?: string;
   id?: number;
@@ -84,6 +67,34 @@ export interface DsUser {
   role?: RoleRole;
   username?: string;
   uuid?: string;
+}
+
+export interface DsMethaneReagent {
+  methane_yield?: number;
+  quantity?: number;
+  reagent?: DsReagentDetails | null;
+}
+
+export interface DsReagentDetails {
+  id?: number;
+  name?: string;
+  formula?: string;
+  price?: number;
+  img?: string;
+  molarmass?: number;
+}
+
+export interface DsMethane {
+  date_create?: string;
+  date_finish?: string;
+  date_update?: string;
+  id?: number;
+  name?: string;
+  professor?: DsUser | null;
+  reagents?: DsMethaneReagent[];
+  researcher?: DsUser | null;
+  status?: string;
+  temperature?: number;
 }
 
 import type {
@@ -274,6 +285,29 @@ export class Api<
 > extends HttpClient<SecurityDataType> {
   api = {
     /**
+     * @description Публичный метод чтения данных
+     *
+     * @tags reagents
+     * @name ReagentsList
+     * @summary Список реагентов
+     * @request GET:/api/reagents
+     */
+    reagentsList: (
+      query?: {
+        /** Поиск */
+        search?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<DsReagent[], Record<string, any>>({
+        path: `/api/reagents`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Для исследователя возвращает только его заявки, для модератора и администратора — все
      *
      * @tags methanes
@@ -292,7 +326,25 @@ export class Api<
       }),
 
     /**
-     * No description
+     * @description Получить заявку по ID
+     *
+     * @tags methanes
+     * @name MethanesDetail
+     * @summary Получить заявку по ID
+     * @request GET:/api/methanes/{id}
+     * @secure
+     */
+    methanesDetail: (id: number, params: RequestParams = {}) =>
+      this.request<DsMethane, Record<string, any>>({
+        path: `/api/methanes/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Получить черновик текущего пользователя
      *
      * @tags methanes
      * @name MethanesDraftList
@@ -328,30 +380,6 @@ export class Api<
       }),
 
     /**
-     * @description Только модератор или администратор может завершить сформированную заявку
-     *
-     * @tags methanes
-     * @name MethanesCompleteUpdate
-     * @summary Завершить или отклонить заявку
-     * @request PUT:/api/methanes/{id}/complete
-     * @secure
-     */
-    methanesCompleteUpdate: (
-      id: number,
-      input: AppCompleteMethaneReq,
-      params: RequestParams = {},
-    ) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/api/methanes/${id}/complete`,
-        method: "PUT",
-        body: input,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
      * @description Только владелец заявки может перевести её из черновика в статус "сформирована"
      *
      * @tags methanes
@@ -376,35 +404,36 @@ export class Api<
       }),
 
     /**
-     * @description Публичный метод чтения данных
+     * @description Только модератор или администратор может завершить сформированную заявку
      *
-     * @tags reagents
-     * @name ReagentsList
-     * @summary Список реагентов
-     * @request GET:/api/reagents
+     * @tags methanes
+     * @name MethanesCompleteUpdate
+     * @summary Завершить или отклонить заявку
+     * @request PUT:/api/methanes/{id}/complete
+     * @secure
      */
-    reagentsList: (
-      query?: {
-        /** Поиск */
-        search?: string;
-      },
+    methanesCompleteUpdate: (
+      id: number,
+      input: AppCompleteMethaneReq,
       params: RequestParams = {},
     ) =>
-      this.request<DsReagent[], Record<string, any>>({
-        path: `/api/reagents`,
-        method: "GET",
-        query: query,
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/api/methanes/${id}/complete`,
+        method: "PUT",
+        body: input,
+        secure: true,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),
   };
   auth = {
     /**
-     * @description Аутентификация через JWT, возвращает access_token
+     * @description JWT, accesstoken
      *
      * @tags auth
      * @name LoginCreate
-     * @summary Вход пользователя (JWT)
+     * @summary JWT
      * @request POST:/auth/login
      */
     loginCreate: (input: AppLoginReq, params: RequestParams = {}) =>
@@ -418,11 +447,11 @@ export class Api<
       }),
 
     /**
-     * @description Добавляет текущий JWT в blacklist Redis
+     * @description JWT blacklist Redis
      *
      * @tags auth
      * @name LogoutCreate
-     * @summary Выход (Blacklist JWT)
+     * @summary Blacklist JWT
      * @request POST:/auth/logout
      * @secure
      */
@@ -436,11 +465,10 @@ export class Api<
       }),
 
     /**
-     * @description Создаёт нового пользователя
+     * No description
      *
      * @tags auth
      * @name RegisterCreate
-     * @summary Регистрация пользователя
      * @request POST:/auth/register
      */
     registerCreate: (input: AppRegisterReq, params: RequestParams = {}) =>
