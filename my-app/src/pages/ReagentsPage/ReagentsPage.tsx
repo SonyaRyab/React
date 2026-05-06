@@ -13,7 +13,7 @@ import { AppDispatch, RootState } from '../../store';
 import { getReagentsList, setSearchValue } from '../../slices/reagentsSlice';
 import {
   addReagentToMethaneApplication,
-  setMethaneApplicationDraft,
+  loadDraftFromServer,
 } from '../../slices/methaneApplicationDraftSlice';
 import { api } from '../../api';
 import Header from '../../components/Header/Header';
@@ -69,15 +69,27 @@ export const ReagentsPage: FC = () => {
         return;
       }
 
-      const response = await api.api.methanesDraftList();
-      const draft = response.data;
+      try {
+        const response = await api.api.methanesDraftList();
+        const draft = response.data;
 
-      if (draft?.id) {
-        navigate(`${ROUTES.METHANE_APPLICATION}/${draft.id}`);
+        if (draft?.id) {
+          dispatch(loadDraftFromServer(draft));
+          navigate(`${ROUTES.METHANE_APPLICATION}/${draft.id}`);
+          return;
+        }
+      } catch {}
+
+      const created = await api.api.methanesDraftCreate();
+      const newDraft = created.data;
+
+      if (newDraft?.id) {
+        dispatch(loadDraftFromServer(newDraft));
+        navigate(`${ROUTES.METHANE_APPLICATION}/${newDraft.id}`);
         return;
       }
 
-      alert('Черновик заявки не найден');
+      alert('Не удалось создать черновик заявки');
     } catch (error) {
       console.error('Не удалось открыть черновик заявки', error);
       alert('Не удалось открыть заявку');
@@ -109,7 +121,7 @@ export const ReagentsPage: FC = () => {
           </div>
 
           <Button variant="primary" onClick={openDraft}>
-            Перейти к заявке ({draftItems.reduce((sum, item) => sum + item.count, 0)})
+            ({draftItems.reduce((sum, item) => sum + item.count, 0)})
           </Button>
         </div>
 

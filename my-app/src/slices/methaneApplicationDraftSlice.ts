@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { api } from '../api';
 import type { Reagent } from '../modules/types';
+import type { RootState } from '../store';
 
 interface ReagentInApplication {
   reagent: Reagent;
@@ -20,6 +21,7 @@ interface MethaneApplicationState {
   methaneData: MethaneData;
   error: string | null;
   isDraft: boolean;
+  loading?: boolean;
 }
 
 interface ServerMethaneReagent {
@@ -48,6 +50,7 @@ const initialState: MethaneApplicationState = {
   },
   error: null,
   isDraft: true,
+  loading: false,
 };
 
 const getErrorMessage = (error: any): string =>
@@ -95,32 +98,49 @@ export const getMethaneApplication = createAsyncThunk<
 });
 
 export const addReagentToMethaneApplication = createAsyncThunk<
-  { reagent: Reagent; count: number; appid?: number },
+  ServerMethane,
   Reagent,
-  { rejectValue: string; state: any }
+  { rejectValue: string; state: { methaneApplicationDraft: MethaneApplicationState } }
 >(
-  'methaneApplication/addReagentToMethaneApplication',
+  'methaneApplicationDraft/addReagent',
   async (reagent, { getState, rejectWithValue }) => {
     try {
-      const state: any = getState();
-      let app_id: number | undefined = state.methaneApplicationDraft.app_id;
+      let appId = getState().methaneApplicationDraft.app_id;
 
-      if (!app_id) {
-        const draftResponse = await api.api.methanesDraftCreate();
-        app_id = draftResponse.data?.id;
+      // Если нет appId, пробуем получить или создать черновик
+      if (!appId) {
+        try {
+          const draftResp = await api.api.methanesDraftList();
+          if (draftResp.data?.id) {
+            appId = draftResp.data.id;
+          }
+        } catch {}
+
+        if (!appId) {
+          const createResp = await api.api.methanesDraftCreate();
+          if (createResp.data?.id) {
+            appId = createResp.data.id;
+          }
+        }
       }
 
-      const existing = state.methaneApplicationDraft.reagents.find(
-        (item: { reagent: Reagent; count: number }) => item.reagent.id === reagent.id
-      );
+      if (!appId) {
+        return rejectWithValue('Не удалось получить id черновика');
+      }
 
-      return {
-        reagent,
-        count: existing ? existing.count + 1 : 1,
-        app_id,
-      };
+      // Добавляем реагент
+      const response = await api.api.methanesReagentsCreate(appId, {
+        reagent_id: reagent.id!,
+        quantity: 1,
+      });
+
+      return response.data as ServerMethane;
     } catch (error: any) {
-      return rejectWithValue(getErrorMessage(error));
+      return rejectWithValue(
+        error?.response?.data?.error ||
+        error?.message ||
+        'Не удалось добавить реагент в заявку'
+      );
     }
   }
 );
@@ -252,27 +272,34 @@ const methaneApplicationDraftSlice = createSlice({
         state.error = action.payload ?? 'Failed to load draft';
       })
 
+      // .addCase(addReagentToMethaneApplication.fulfilled, (state, action) => {
+      //   if (action.payload.appid) {
+      //     state.app_id = action.payload.appid;
+      //   }
+
+      //   const existing = state.reagents.find(
+      //     (item) => item.reagent.id === action.payload.reagent.id
+      //   );
+
+      //   if (existing) {
+      //     existing.count = action.payload.count;
+      //   } else {
+      //     state.reagents.push({
+      //       reagent: action.payload.reagent,
+      //       count: action.payload.count,
+      //     });
+      //   }
+
+      //   state.count = state.reagents.reduce((sum, item) => sum + item.count, 0);
+      //   state.isDraft = true;
+      //   state.error = null;
+      // })
+      // .addCase(addReagentToMethaneApplication.rejected, (state, action) => {
+      //   state.error = action.payload ?? 'Failed to add reagent';
+      // })
+
       .addCase(addReagentToMethaneApplication.fulfilled, (state, action) => {
-        if (action.payload.appid) {
-          state.app_id = action.payload.appid;
-        }
-
-        const existing = state.reagents.find(
-          (item) => item.reagent.id === action.payload.reagent.id
-        );
-
-        if (existing) {
-          existing.count = action.payload.count;
-        } else {
-          state.reagents.push({
-            reagent: action.payload.reagent,
-            count: action.payload.count,
-          });
-        }
-
-        state.count = state.reagents.reduce((sum, item) => sum + item.count, 0);
-        state.isDraft = true;
-        state.error = null;
+        applyServerMethaneToState(state, action.payload);
       })
       .addCase(addReagentToMethaneApplication.rejected, (state, action) => {
         state.error = action.payload ?? 'Failed to add reagent';

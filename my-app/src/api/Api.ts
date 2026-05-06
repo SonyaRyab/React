@@ -43,60 +43,6 @@ export interface DsReagent {
   video?: string;
 }
 
-export enum RoleRole {
-  Researcher = "researcher",
-  Professor = "professor",
-  Admin = "admin",
-}
-
-export interface AppCompleteMethaneReq {
-  status?: string;
-}
-
-export interface AppFormMethaneReq {
-  methane_yield?: number;
-  name?: string;
-  temperature?: number;
-}
-
-export interface DsUser {
-  email?: string;
-  id?: number;
-  is_professor?: boolean;
-  login?: string;
-  role?: RoleRole;
-  username?: string;
-  uuid?: string;
-}
-
-export interface DsMethaneReagent {
-  methane_yield?: number;
-  quantity?: number;
-  reagent?: DsReagentDetails | null;
-}
-
-export interface DsReagentDetails {
-  id?: number;
-  name?: string;
-  formula?: string;
-  price?: number;
-  img?: string;
-  molarmass?: number;
-}
-
-export interface DsMethane {
-  date_create?: string;
-  date_finish?: string;
-  date_update?: string;
-  id?: number;
-  name?: string;
-  professor?: DsUser | null;
-  reagents?: DsMethaneReagent[];
-  researcher?: DsUser | null;
-  status?: string;
-  temperature?: number;
-}
-
 import type {
   AxiosInstance,
   AxiosRequestConfig,
@@ -306,18 +252,8 @@ export class Api<
         format: "json",
         ...params,
       }),
-
-    /**
-     * @description Для исследователя возвращает только его заявки, для модератора и администратора — все
-     *
-     * @tags methanes
-     * @name MethanesList
-     * @summary Список заявок
-     * @request GET:/api/methanes
-     * @secure
-     */
-    methanesList: (params: RequestParams = {}) =>
-      this.request<DsMethane[], Record<string, any>>({
+          methanesList: (params: RequestParams = {}) =>
+      this.request<any[], Record<string, any>>({
         path: `/api/methanes`,
         method: "GET",
         secure: true,
@@ -325,17 +261,8 @@ export class Api<
         ...params,
       }),
 
-    /**
-     * @description Получить заявку по ID
-     *
-     * @tags methanes
-     * @name MethanesDetail
-     * @summary Получить заявку по ID
-     * @request GET:/api/methanes/{id}
-     * @secure
-     */
     methanesDetail: (id: number, params: RequestParams = {}) =>
-      this.request<DsMethane, Record<string, any>>({
+      this.request<any, Record<string, any>>({
         path: `/api/methanes/${id}`,
         method: "GET",
         secure: true,
@@ -343,17 +270,8 @@ export class Api<
         ...params,
       }),
 
-    /**
-     * @description Получить черновик текущего пользователя
-     *
-     * @tags methanes
-     * @name MethanesDraftList
-     * @summary Получить черновик текущего пользователя
-     * @request GET:/api/methanes/draft
-     * @secure
-     */
     methanesDraftList: (params: RequestParams = {}) =>
-      this.request<DsMethane, Record<string, any>>({
+      this.request<any, Record<string, any>>({
         path: `/api/methanes/draft`,
         method: "GET",
         secure: true,
@@ -361,17 +279,8 @@ export class Api<
         ...params,
       }),
 
-    /**
-     * @description Создаёт новую заявку и назначает текущего пользователя автором
-     *
-     * @tags methanes
-     * @name MethanesDraftCreate
-     * @summary Создать черновик заявки
-     * @request POST:/api/methanes/draft
-     * @secure
-     */
     methanesDraftCreate: (params: RequestParams = {}) =>
-      this.request<DsMethane, Record<string, any>>({
+      this.request<any, Record<string, any>>({
         path: `/api/methanes/draft`,
         method: "POST",
         secure: true,
@@ -379,54 +288,92 @@ export class Api<
         ...params,
       }),
 
-    /**
-     * @description Только владелец заявки может перевести её из черновика в статус "сформирована"
-     *
-     * @tags methanes
-     * @name MethanesFormUpdate
-     * @summary Сформировать заявку
-     * @request PUT:/api/methanes/{id}/form
-     * @secure
-     */
     methanesFormUpdate: (
       id: number,
-      input: AppFormMethaneReq,
+      input: {
+        name?: string;
+        temperature?: number;
+        methane_yield?: number;
+      },
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/api/methanes/${id}/form`,
         method: "PUT",
         body: input,
-        secure: true,
         type: ContentType.Json,
+        secure: true,
         format: "json",
         ...params,
       }),
 
-    /**
-     * @description Только модератор или администратор может завершить сформированную заявку
-     *
-     * @tags methanes
-     * @name MethanesCompleteUpdate
-     * @summary Завершить или отклонить заявку
-     * @request PUT:/api/methanes/{id}/complete
-     * @secure
-     */
     methanesCompleteUpdate: (
       id: number,
-      input: AppCompleteMethaneReq,
+      input: {
+        status?: string;
+      },
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/api/methanes/${id}/complete`,
         method: "PUT",
         body: input,
-        secure: true,
         type: ContentType.Json,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    methanesReagentsCreate: (
+      id: number,
+      input: {
+        reagent_id: number;
+        quantity: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<any, Record<string, any>>({
+        path: `/api/methanes/${id}/reagents`,
+        method: "POST",
+        body: input,
+        type: ContentType.Json,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    methanesReagentsUpdate: (
+      id: number,
+      reagentId: number,
+      input: {
+        quantity: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/api/methanes/${id}/reagents/${reagentId}`,
+        method: "PUT",
+        body: input,
+        type: ContentType.Json,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    methanesReagentsDelete: (
+      id: number,
+      reagentId: number,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/api/methanes/${id}/reagents/${reagentId}`,
+        method: "DELETE",
+        secure: true,
         format: "json",
         ...params,
       }),
   };
+  
   auth = {
     /**
      * @description JWT, accesstoken
