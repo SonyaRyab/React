@@ -108,9 +108,9 @@ const RegisterPage: React.FC = () => {
 
           <div className="d-flex gap-2">
             <Button type="submit">Зарегистрироваться</Button>
-            <Link to={ROUTES.LOGIN}>
+            {/* <Link to={ROUTES.LOGIN}>
               <Button variant="outline-secondary">Ко входу</Button>
-            </Link>
+            </Link> */}
           </div>
         </Form>
       </Container>

@@ -24,13 +24,30 @@ export interface ApplicationReagent {
   quantity?: number;
 }
 
+export interface ApplicationReagentDetails {
+  id?: number;
+  name?: string;
+  formula?: string;
+  price?: number;
+  img?: string;
+  molarmass?: number;
+}
+
+export interface ApplicationItem {
+  id?: number;
+  quantity?: number;
+  methaneyield?: number;
+  reagent?: ApplicationReagentDetails | null;
+}
+
 export interface ApplicationItem {
   id: number;
   name?: string;
   status?: ApplicationStatus;
-  date_create?: string;
-  date_update?: string;
-  date_finish?: string;
+  datecreate?: string;
+  dateupdate?: string;
+  datefinish?: string;
+  temperature?: number;
   researcher?: ApplicationUser | null;
   professor?: ApplicationUser | null;
   reagents?: ApplicationReagent[];
@@ -81,10 +98,10 @@ const normalizeArray = (payload: any): ApplicationItem[] => {
 export const fetchMyApplications = createAsyncThunk<
   ApplicationItem[],
   void,
-  { rejectValue: string; state: any }
+  { rejectValue: string }
 >('applications/fetchMyApplications', async (_, { rejectWithValue }) => {
   try {
-    const response = await api.methanes.methanesList?.();
+    const response = await api.api.methanesList?.();
     return normalizeArray(response?.data);
   } catch (error: any) {
     return rejectWithValue(getErrorMessage(error));
@@ -100,7 +117,7 @@ export const fetchAllApplications = createAsyncThunk<
     const state = getState();
     const { status, createdFrom, createdTo } = state.applications.filters as ApplicationsFilters;
 
-    const response = await api.methanes.methanesList?.();
+    const response = await api.api.methanesList?.();
     let items = normalizeArray(response?.data);
 
     if (status) {
@@ -108,18 +125,20 @@ export const fetchAllApplications = createAsyncThunk<
     }
 
     if (createdFrom) {
-      const from = new Date(createdFrom).setHours(0, 0, 0, 0);
+      const from = new Date(createdFrom);
+      from.setHours(0, 0, 0, 0);
       items = items.filter((item) => {
-        if (!item.date_create) return false;
-        return new Date(item.date_create).getTime() >= from;
+        if (!item.datecreate) return false;
+        return new Date(item.datecreate).getTime() >= from.getTime();
       });
     }
 
     if (createdTo) {
-      const to = new Date(createdTo).setHours(23, 59, 59, 999);
+      const to = new Date(createdTo);
+      to.setHours(23, 59, 59, 999);
       items = items.filter((item) => {
-        if (!item.date_create) return false;
-        return new Date(item.date_create).getTime() <= to;
+        if (!item.datecreate) return false;
+        return new Date(item.datecreate).getTime() <= to.getTime();
       });
     }
 
@@ -135,12 +154,12 @@ export const fetchApplicationById = createAsyncThunk<
   { rejectValue: string }
 >('applications/fetchApplicationById', async (id, { rejectWithValue }) => {
   try {
-    const response = await api.methanes.methanesList?.();
+    const response = await api.api.methanesList?.();
     const items = normalizeArray(response?.data);
     const found = items.find((item) => item.id === id);
 
     if (!found) {
-      throw new Error('Заявка не найдена');
+      throw new Error('Application not found');
     }
 
     return found;
@@ -151,11 +170,12 @@ export const fetchApplicationById = createAsyncThunk<
 
 export const confirmDraftApplication = createAsyncThunk<
   boolean,
-  { id: number; payload: { name: string; temperature: number; methane_yield: number } },
+  { id: number; payload: { name: string; temperature: number; methaneyield: number } },
   { rejectValue: string }
 >('applications/confirmDraftApplication', async ({ id, payload }, { rejectWithValue }) => {
   try {
-    await api.instance.put(`/api/methanes/${id}/form`, payload);
+    await api.api.methanesFormUpdate(id, payload);
+    await api.api.methanesCompleteUpdate(id, { status: 'formed' });
     return true;
   } catch (error: any) {
     return rejectWithValue(getErrorMessage(error));
@@ -168,7 +188,7 @@ export const changeApplicationStatus = createAsyncThunk<
   { rejectValue: string }
 >('applications/changeApplicationStatus', async ({ id, status }, { rejectWithValue }) => {
   try {
-    await api.instance.put(`/api/methanes/${id}/complete`, { status });
+    await api.api.methanesCompleteUpdate(id, { status });
     return true;
   } catch (error: any) {
     return rejectWithValue(getErrorMessage(error));
@@ -179,13 +199,13 @@ const applicationsSlice = createSlice({
   name: 'applications',
   initialState,
   reducers: {
-    setApplicationsFilter<K extends keyof ApplicationsFilters>(
-      state,
+    setApplicationsFilter: <K extends keyof ApplicationsFilters>(
+      state: ApplicationsState,
       action: PayloadAction<{ key: K; value: ApplicationsFilters[K] }>
-    ) {
+    ) => {
       state.filters[action.payload.key] = action.payload.value;
     },
-    resetApplicationsFilters(state) {
+    resetApplicationsFilters: (state) => {
       state.filters = {
         status: '',
         createdFrom: '',
@@ -193,14 +213,14 @@ const applicationsSlice = createSlice({
         creator: '',
       };
     },
-    setPollingEnabled(state, action: PayloadAction<boolean>) {
+    setPollingEnabled: (state, action: PayloadAction<boolean>) => {
       state.pollingEnabled = action.payload;
     },
-    clearCurrentApplication(state) {
+    clearCurrentApplication: (state) => {
       state.currentItem = null;
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: (builder) =>
     builder
       .addCase(fetchMyApplications.pending, (state) => {
         state.loading = true;
@@ -212,7 +232,7 @@ const applicationsSlice = createSlice({
       })
       .addCase(fetchMyApplications.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload ?? 'Не удалось загрузить заявки';
+        state.error = action.payload ?? 'Failed to fetch applications';
       })
 
       .addCase(fetchAllApplications.pending, (state) => {
@@ -225,7 +245,7 @@ const applicationsSlice = createSlice({
       })
       .addCase(fetchAllApplications.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload ?? 'Не удалось загрузить заявки';
+        state.error = action.payload ?? 'Failed to fetch all applications';
       })
 
       .addCase(fetchApplicationById.pending, (state) => {
@@ -238,7 +258,7 @@ const applicationsSlice = createSlice({
       })
       .addCase(fetchApplicationById.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload ?? 'Не удалось загрузить заявку';
+        state.error = action.payload ?? 'Failed to fetch application';
       })
 
       .addCase(confirmDraftApplication.pending, (state) => {
@@ -250,7 +270,7 @@ const applicationsSlice = createSlice({
       })
       .addCase(confirmDraftApplication.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload ?? 'Не удалось сформировать заявку';
+        state.error = action.payload ?? 'Failed to confirm application';
       })
 
       .addCase(changeApplicationStatus.pending, (state) => {
@@ -262,9 +282,8 @@ const applicationsSlice = createSlice({
       })
       .addCase(changeApplicationStatus.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload ?? 'Не удалось изменить статус заявки';
-      });
-  },
+        state.error = action.payload ?? 'Failed to change status';
+      }),
 });
 
 export const {

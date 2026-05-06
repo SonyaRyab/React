@@ -40,7 +40,7 @@ function App() {
         element={<MethaneApplicationPage />} 
       />
       <Route
-        path={`${ROUTES.METHANE_APPLICATION}/:app_id`}
+        path={`${ROUTES.METHANE_APPLICATION}/:appid`}
         element={<MethaneApplicationPage />}
       />
       <Route
@@ -59,6 +59,8 @@ function App() {
           </ProtectedRoute>
         }
       />
+
+      <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
     </Routes>
   );
 }

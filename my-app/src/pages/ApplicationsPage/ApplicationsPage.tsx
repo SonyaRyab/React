@@ -4,17 +4,20 @@ import { useEffect } from 'react';
 import { Alert, Button, Container, Table } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+
 import Header from '../../components/Header/Header';
-import type { AppDispatch, RootState } from '../../store';
-import { fetchMyApplications } from '../../slices/applicationsSlice';
 import LoadingOverlay from '../../components/LoadingOverlay';
 import { ROUTES } from '../../Routes';
+import type { AppDispatch, RootState } from '../../store';
+import { fetchMyApplications } from '../../slices/applicationsSlice';
 
 const ApplicationsPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
-  const { items, loading, error } = useSelector((state: RootState) => state.applications);
+  const { items, loading, error } = useSelector(
+    (state: RootState) => state.applications
+  );
 
   useEffect(() => {
     dispatch(fetchMyApplications());
@@ -31,7 +34,7 @@ const ApplicationsPage = () => {
         {error && <Alert variant="danger">{error}</Alert>}
 
         {!loading && items.length === 0 && (
-          <Alert variant="secondary">У вас пока нет заявок.</Alert>
+          <Alert variant="secondary">Список заявок пуст.</Alert>
         )}
 
         {items.length > 0 && (
@@ -41,19 +44,19 @@ const ApplicationsPage = () => {
                 <th>ID</th>
                 <th>Название</th>
                 <th>Статус</th>
-                <th>Дата создания</th>
-                <th>Дата обновления</th>
-                <th>Действия</th>
+                <th>Создана</th>
+                <th>Обновлена</th>
+                <th>Действие</th>
               </tr>
             </thead>
             <tbody>
               {items.map((item) => (
                 <tr key={item.id}>
                   <td>{item.id}</td>
-                  <td>{item.name || 'Без названия'}</td>
+                  <td>{item.name || '-'}</td>
                   <td>{item.status || '-'}</td>
-                  <td>{item.date_create ? new Date(item.date_create).toLocaleString() : '-'}</td>
-                  <td>{item.date_update ? new Date(item.date_update).toLocaleString() : '-'}</td>
+                  <td>{item.datecreate ? new Date(item.datecreate).toLocaleString() : '-'}</td>
+                  <td>{item.dateupdate ? new Date(item.dateupdate).toLocaleString() : '-'}</td>
                   <td>
                     <Button
                       size="sm"

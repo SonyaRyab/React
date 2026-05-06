@@ -46,9 +46,9 @@ export const AppNavbar: FC<AppNavbarProps> = ({ cartCount = 0 }) => {
               Заявка {totalCount > 0 && <Badge bg="danger">{totalCount}</Badge>}
             </Nav.Link>
           </Nav>
-          <Nav>
-            <NavLink to={/*Страница личного кабинета пользователя*/} className='nav__link'>{ username }</NavLink>       
-          </Nav>
+          {/* <Nav> */}
+            {/* <NavLink to=Страница личного кабинета пользователя className='nav__link'>{ username }</NavLink>        */}
+          {/* </Nav> */}
         </Navbar.Collapse>
       </Container>
     </Navbar>

@@ -16,9 +16,13 @@ const Header = () => {
   const { isAuthenticated, username, role } = useSelector(
     (state: RootState) => state.user
   );
-  const { appid, count } = useSelector(
+  const { app_id, count } = useSelector(
     (state: RootState) => state.methaneApplicationDraft
   );
+  
+  const draftPath = app_id
+    ? `${ROUTES.METHANE_APPLICATION}/${app_id}`
+    : `${ROUTES.METHANE_APPLICATION}`;
 
   const handleExit = async () => {
     await dispatch(logoutUserAsync());
@@ -29,7 +33,7 @@ const Header = () => {
   };
 
   const handleDraftClick = (e: React.MouseEvent) => {
-    if (!appid) {
+    if (!app_id) {
       e.preventDefault();
     }
   };
@@ -39,9 +43,9 @@ const Header = () => {
   return (
     <Navbar bg="light" expand="lg" className="mb-3 app-navbar shadow-sm">
       <Container>
-        <Navbar.Brand as={Link} to={ROUTES.HOME} className="app-navbar-brand">
-          Синтез Метана
-        </Navbar.Brand>
+        {/* <Navbar.Brand as={Link} to={`/${ROUTES.HOME}`} className="app-navbar-brand">
+          Синтез метана
+        </Navbar.Brand> */}
 
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
 
@@ -52,7 +56,7 @@ const Header = () => {
             </Nav.Link>
 
             <Nav.Link as={Link} to={ROUTES.REAGENTS}>
-              Каталог реагентов
+              Реагенты
             </Nav.Link>
 
             {isAuthenticated && !isModerator && (
@@ -63,30 +67,26 @@ const Header = () => {
 
             {isAuthenticated && isModerator && (
               <Nav.Link as={Link} to={ROUTES.MODERATOR_APPLICATIONS}>
-                Все заявки
+                Заявки
               </Nav.Link>
             )}
 
-            {/* <Nav.Link
-              as={Link}
-              to={
-                appid
-                  ? `${ROUTES.METHANE_APPLICATION}/${appid}`
-                  : ROUTES.METHANE_APPLICATION
-              }
-              onClick={handleDraftClick}
-              className={!appid ? 'disabled-draft-link' : ''}
-            >
-              Заявка {count > 0 && <Badge bg="danger">{count}</Badge>}
-            </Nav.Link> */}
+            {isAuthenticated && (
+              <Nav.Link
+                as={Link}
+                to={draftPath}
+                onClick={handleDraftClick}
+                className={!app_id ? 'disabled-draft-link' : ''}
+              >
+                Заявка {count > 0 && <Badge bg="danger">{count}</Badge>}
+              </Nav.Link>
+            )}
           </Nav>
 
           <Nav className="align-items-center gap-2">
-            {/* {isAuthenticated && username && (
-              <Navbar.Text className="app-navbar-username">
-                {username}
-              </Navbar.Text>
-            )} */}
+            {isAuthenticated && username && (
+              <Navbar.Text className="app-navbar-username">{username}</Navbar.Text>
+            )}
 
             {!isAuthenticated ? (
               <>
@@ -96,12 +96,12 @@ const Header = () => {
                   </Button>
                 </Link>
                 <Link to={ROUTES.LOGIN}>
-                  <Button className="login-btn">Вход</Button>
+                  <Button className="login-btn">Войти</Button>
                 </Link>
               </>
             ) : (
               <Button className="login-btn" onClick={handleExit}>
-                Выход
+                Выйти
               </Button>
             )}
           </Nav>

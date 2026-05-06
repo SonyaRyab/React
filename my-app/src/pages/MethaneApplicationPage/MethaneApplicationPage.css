@@ -113,3 +113,48 @@
     align-items: stretch;
   }
 }
+
+.methane-page-container {
+  padding-bottom: 32px;
+}
+
+.methane-page-title {
+  margin-bottom: 24px;
+}
+
+.methane-page-form-block {
+  margin-bottom: 24px;
+  padding: 20px;
+  border: 1px solid #dee2e6;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.methane-page-table-wrapper {
+  margin-bottom: 24px;
+}
+
+.qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 180px;
+}
+
+.qty-input {
+  width: 80px;
+  text-align: center;
+}
+
+.methane-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.methane-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}

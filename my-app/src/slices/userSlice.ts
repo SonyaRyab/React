@@ -16,35 +16,71 @@ type JwtPayload = {
   iat?: number;
 };
 
-interface LoginResponse {
-  login: string;
-  accessToken: string;
-}
-
-interface RegisterPayload {
-  login: string;
-  name: string;
-  pass: string;
-  role?: string;
-}
-
 interface UserState {
-  username: string;
+  username: string | null;
   role: UserRole;
   token: string | null;
   isAuthenticated: boolean;
-  error?: string | null; 
+  error?: string | null;
 }
 
-const savedToken = localStorage.getItem('token');
-const savedUsername = localStorage.getItem('username') || localStorage.getItem('login') || '';
-const savedRole = (localStorage.getItem('role') as UserRole) || null;
+const clearStoredAuth = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('username');
+  localStorage.removeItem('role');
+  localStorage.removeItem('login');
+};
+
+const readStoredAuth = () => {
+  const token = localStorage.getItem('token');
+  const username = localStorage.getItem('username') || localStorage.getItem('login');
+  const role = (localStorage.getItem('role') as UserRole) || null;
+
+  if (!token) {
+    return {
+      username: null,
+      role: null,
+      token: null,
+      isAuthenticated: false,
+    };
+  }
+
+  try {
+    const decoded = jwtDecode<JwtPayload>(token);
+    if (decoded.exp && decoded.exp * 1000 <= Date.now()) {
+      clearStoredAuth();
+      return {
+        username: null,
+        role: null,
+        token: null,
+        isAuthenticated: false,
+      };
+    }
+
+    return {
+      username,
+      role,
+      token,
+      isAuthenticated: true,
+    };
+  } catch {
+    clearStoredAuth();
+    return {
+      username: null,
+      role: null,
+      token: null,
+      isAuthenticated: false,
+    };
+  }
+};
+
+const initialAuth = readStoredAuth();
 
 const initialState: UserState = {
-  username: savedUsername,
-  role: savedRole,
-  token: savedToken,
-  isAuthenticated: !!savedToken,
+  username: initialAuth.username,
+  role: initialAuth.role,
+  token: initialAuth.token,
+  isAuthenticated: initialAuth.isAuthenticated,
   error: null,
 };
 
@@ -60,22 +96,17 @@ export const loginUserAsync = createAsyncThunk<
   { login: string; password: string },
   { rejectValue: string }
 >('user/loginUserAsync', async (credentials, { rejectWithValue }) => {
-    try {
-      const response = await api.auth.loginCreate(credentials as any);
-      return {
-        accessToken: response.data.access_token,
-        username: response.data.username ?? credentials.login,
-        login: response.data.login ?? credentials.login,
-      };
-    } catch (error: any) {
-      return rejectWithValue(
-        error?.response?.data?.error ||
-        error?.response?.data?.message ||
-        'Ошибка входа'
-      );
-    }
+  try {
+    const response = await api.auth.loginCreate(credentials as any);
+    return {
+      accessToken: response.data.accesstoken,
+      username: response.data.username ?? credentials.login,
+      login: response.data.login ?? credentials.login,
+    };
+  } catch (error: any) {
+    return rejectWithValue(getErrorMessage(error));
   }
-);
+});
 
 export const registerUserAsync = createAsyncThunk<
   boolean,
@@ -86,11 +117,7 @@ export const registerUserAsync = createAsyncThunk<
     await axios.post('http://localhost:8080/auth/register', payload);
     return true;
   } catch (error: any) {
-    return rejectWithValue(
-      error?.response?.data?.error ||
-      error?.response?.data?.message ||
-      'Ошибка регистрации'
-    );
+    return rejectWithValue(getErrorMessage(error));
   }
 });
 
@@ -101,25 +128,17 @@ export const logoutUserAsync = createAsyncThunk<
   { rejectValue: string; dispatch: any; state: any }
 >('user/logoutUserAsync', async (_, { getState, dispatch }) => {
   const token = getState().user.token;
-
   try {
     if (token) {
-      await api.auth.authLogoutCreate(undefined, {
+      await api.auth.logoutCreate({
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      } as any);
+      });
     }
-
-  } catch (error) {
-    // dispatch(resetApplicationsFilters());
-    // return rejectWithValue(
-    //   error?.response?.data?.error ||
-    //   error?.response?.data?.message ||
-    //   'Ошибка выхода'
-    // );
-    console.log("Ошибка выхода", error);
+  } catch {
   }
+
   dispatch(resetApplicationsFilters());
   return true;
 });
@@ -128,14 +147,14 @@ const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {},
-  extraReducers: (builder) => {
+  extraReducers: (builder) =>
     builder
       .addCase(loginUserAsync.pending, (state) => {
         state.error = null;
       })
       .addCase(loginUserAsync.fulfilled, (state, action) => {
         const token = action.payload.accessToken;
-        const decoded = jwtDecode<{ role?: 'researcher' | 'professor' | 'admin' }>(token);
+        const decoded = jwtDecode<JwtPayload>(token);
 
         state.username = action.payload.username;
         state.role = decoded.role ?? 'researcher';
@@ -149,13 +168,13 @@ const userSlice = createSlice({
         localStorage.setItem('role', decoded.role ?? 'researcher');
       })
       .addCase(loginUserAsync.rejected, (state, action) => {
-        state.username = '';
+        state.username = null;
         state.role = null;
         state.token = null;
         state.isAuthenticated = false;
-        state.error = action.payload ?? 'Ошибка входа';
+        state.error = action.payload ?? 'Login failed';
+        clearStoredAuth();
       })
-
       .addCase(registerUserAsync.pending, (state) => {
         state.error = null;
       })
@@ -163,26 +182,19 @@ const userSlice = createSlice({
         state.error = null;
       })
       .addCase(registerUserAsync.rejected, (state, action) => {
-        state.error = action.payload ?? 'Ошибка регистрации';
+        state.error = action.payload ?? 'Register failed';
       })
-
       .addCase(logoutUserAsync.fulfilled, (state) => {
-        state.username = '';
+        state.username = null;
         state.role = null;
         state.token = null;
         state.isAuthenticated = false;
         state.error = null;
-
-        localStorage.removeItem('token');
-        localStorage.removeItem('username');
-        localStorage.removeItem('role');
-        localStorage.removeItem('login');
+        clearStoredAuth();
       })
-      
       .addCase(logoutUserAsync.rejected, (state, action) => {
-        state.error = action.payload ?? 'Ошибка выхода';
-      });      
-  },
+        state.error = action.payload ?? 'Logout failed';
+      }),
 });
 
 export default userSlice.reducer;

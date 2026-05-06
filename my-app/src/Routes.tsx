@@ -1,12 +1,12 @@
 export const ROUTES = {
-  HOME: "/",
-  REAGENTS: "/reagents",
-  REAGENT: "/reagents/:id",
-  METHANE_APPLICATION: '/methane-application',  
-  LOGIN: "/login",
+  HOME: '/',
+  REAGENTS: '/reagents',
+  REAGENT: '/reagents/:id',
+  LOGIN: '/login',
   REGISTER: '/register',
   APPLICATIONS: '/applications',
   MODERATOR_APPLICATIONS: '/moderator/applications',
+  METHANE_APPLICATION: '/methane-application',
 } as const;
 
 export type RouteKeyType = keyof typeof ROUTES;
