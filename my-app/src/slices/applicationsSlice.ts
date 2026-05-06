@@ -149,24 +149,25 @@ export const fetchAllApplications = createAsyncThunk<
 });
 
 export const fetchApplicationById = createAsyncThunk<
-  ApplicationItem,
+  any,
   number,
   { rejectValue: string }
->('applications/fetchApplicationById', async (id, { rejectWithValue }) => {
-  try {
-    const response = await api.api.methanesList?.();
-    const items = normalizeArray(response?.data);
-    const found = items.find((item) => item.id === id);
-
-    if (!found) {
-      throw new Error('Application not found');
+>(
+  'applications/fetchApplicationById',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await api.api.methanesDetail(id);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        error?.message ||
+        'Не удалось загрузить заявку'
+      );
     }
-
-    return found;
-  } catch (error: any) {
-    return rejectWithValue(getErrorMessage(error));
   }
-});
+);
 
 export const confirmDraftApplication = createAsyncThunk<
   boolean,

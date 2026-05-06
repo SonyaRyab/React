@@ -175,6 +175,26 @@ export const clearMethaneApplicationOnServer = createAsyncThunk<
   }
 );
 
+export const loadMethaneApplicationById = createAsyncThunk<
+  any, // Используй DsMethane, если импортируешь из Api.ts
+  number,
+  { rejectValue: string }
+>(
+  'methaneApplicationDraft/loadMethaneApplicationById',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await api.api.methanesDetail(id);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        error?.message ||
+        'Не удалось загрузить заявку'
+      );
+    }
+  }
+);
 
 const methaneApplicationDraftSlice = createSlice({
   name: 'methaneApplicationDraft',
@@ -281,6 +301,41 @@ const methaneApplicationDraftSlice = createSlice({
       })
       .addCase(clearMethaneApplicationOnServer.rejected, (state, action) => {
         state.error = action.payload ?? 'Failed to clear draft';
+      })
+      
+      .addCase(loadMethaneApplicationById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(loadMethaneApplicationById.fulfilled, (state, action) => {
+        state.loading = false;
+        
+        const methane = action.payload;
+        
+        state.app_id = methane.id ?? null;
+        state.isDraft = methane.status === 'draft';
+        
+        state.methaneData = {
+          processname: methane.name ?? '',
+          reagenttemperature: methane.temperature?.toString() ?? '',
+          comment: '',
+        };
+        
+        state.reagents = (methane.reagents ?? []).map((item: any) => ({
+          reagent: {
+            id: item.reagent?.id ?? 0,
+            name: item.reagent?.name ?? '',
+            formula: item.reagent?.formula ?? '',
+            price: item.reagent?.price ?? 0,
+          },
+          count: item.quantity ?? 1,
+        }));
+        
+        state.count = state.reagents.reduce((sum, item) => sum + item.count, 0);
+      })
+      .addCase(loadMethaneApplicationById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload ?? 'Ошибка загрузки заявки';
       }),
 });
 
