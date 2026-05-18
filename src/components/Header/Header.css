@@ -1,0 +1,45 @@
+.app-navbar {
+  background: #ffffff !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.app-navbar-brand {
+  font-family: "Russo One", sans-serif;
+  font-size: 24px;
+  color: #001aff !important;
+}
+
+.app-navbar .nav-link {
+  font-family: "Russo One", sans-serif;
+  color: #222 !important;
+  transition: color 0.2s ease;
+}
+
+.app-navbar .nav-link:hover {
+  color: #001aff !important;
+}
+
+.app-navbar-username {
+  font-family: "Russo One", sans-serif;
+  color: #001aff;
+  font-size: 16px;
+  margin-right: 8px;
+}
+
+.login-btn {
+  background-color: #fbbf2e !important;
+  border: none !important;
+  color: black !important;
+  font-family: "Russo One", sans-serif !important;
+  border-radius: 10px !important;
+  padding: 8px 18px !important;
+}
+
+.login-btn:hover {
+  background-color: #cca02e !important;
+}
+
+.disabled-draft-link {
+  opacity: 0.5;
+  pointer-events: none;
+}
