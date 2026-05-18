@@ -14,24 +14,26 @@ export default defineConfig({
         devOptions: {
             enabled: true,
         },
-        manifest:{
-            name: "Синтез метана по реакции Сабатье",
-            short_name: "Methane",
-            start_url: "/",
-            display: "standalone",
-            background_color: "#fdfdfd",
-            theme_color: "#db4938",
-            orientation: "portrait-primary",
-            icons: [
-                {
-                    "src": "/logo192.png",
-                    "type": "image/png", "sizes": "192x192"
-                },
-                {
-                    "src": "/logo512.png",
-                    "type": "image/png", "sizes": "512x512"
-                }
-            ],
+        manifest: {
+        name: "Синтез метана по реакции Сабатье",
+        short_name: "Methane",
+        start_url: "/methane_sabatier_reaction/",
+        display: "standalone",
+        background_color: "#fdfdfd",
+        theme_color: "#db4938",
+        orientation: "portrait-primary",
+        icons: [
+            {
+            src: "logo192.png",
+            type: "image/png",
+            sizes: "192x192"
+            },
+            {
+            src: "logo512.png",
+            type: "image/png",
+            sizes: "512x512"
+            }
+        ]
         },
         workbox: {
             maximumFileSizeToCacheInBytes: 30 * 1024 * 1024
