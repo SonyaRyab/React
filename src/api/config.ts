@@ -1,0 +1,3 @@
+import { destapi } from "../target_config";
+
+export const API_BASE = destapi.endsWith("/api") ? destapi : `${destapi}/api`;

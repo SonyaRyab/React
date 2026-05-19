@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { api } from '../api';
+import { api } from '../api/index';
 import type { Reagent } from '../modules/types';
 import { getReagents } from '../modules/api';
 import { REAGENTS_MOCK } from "../modules/mock"; // мок-данные

@@ -1,4 +1,6 @@
-const MINIO_BASE_URL = 'http://localhost:9000/logo';
+import { API_BASE } from "../api/config";
+
+const MINIO_BASE_URL = API_BASE;
 
 export function getMediaUrl(fileName?: string): string | undefined {
   if (!fileName) return undefined;

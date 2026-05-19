@@ -1,7 +1,8 @@
 import { REAGENTS_MOCK } from './mock';
 import type { Reagent } from './types';
 
-const API_URL = 'http://localhost:8080/api';
+import { API_BASE } from "../api/config";
+const API_URL = API_BASE;
 
 export async function getReagents(search = ''): Promise<Reagent[]> {
   try {

@@ -40,19 +40,19 @@ function App() {
       element={<RegisterPage />} 
       />
       <Route 
-        path={ROUTES.REAGENTS} 
+        path="/reagents"
         element={<ReagentsPage />} 
       />
       <Route
-        path={ROUTES.REAGENT}
+        path="/reagents/:id"
         element={<ReagentDetailPage />}
       />
       <Route 
-        path={ROUTES.METHANE_APPLICATION} 
+        path="/methane-application"
         element={<MethaneApplicationPage />} 
       />
       <Route
-        path={`${ROUTES.METHANE_APPLICATION}/:appid`}
+        path="/methane-application/:appid"
         element={<MethaneApplicationPage />}
       />
       <Route

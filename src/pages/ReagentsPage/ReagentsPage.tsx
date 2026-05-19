@@ -3,7 +3,12 @@ import type { FC, ChangeEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Spinner, Button, Alert } from 'react-bootstrap';
 import { ReagentCard } from '../../components/ReagentCard/ReagentCard';
-import { ROUTES, ROUTE_LABELS } from '../../Routes';
+import {
+  ROUTES,
+  ROUTE_LABELS,
+  buildReagentRoute,
+  buildMethaneApplicationRoute,
+} from '../../Routes';
 import { BreadCrumbs } from '../../components/BreadCrumbs/BreadCrumbs';
 import { REAGENTS_MOCK } from '../../modules/mock';
 import { useNavigate } from 'react-router-dom';
@@ -63,7 +68,7 @@ export const ReagentsPage: FC = () => {
 
   const openDraft = async () => {
     if (!appid || draftCount === 0) return;
-    navigate(`${ROUTES.METHANE_APPLICATION}/${appid}`);
+    navigate(buildMethaneApplicationRoute(appid));
   };
 
   const handleAddToDraft = async (reagentId: number) => {
@@ -78,7 +83,7 @@ export const ReagentsPage: FC = () => {
     if (addReagentToMethaneApplication.fulfilled.match(result)) {
       const newId = result.payload?.id;
       if (newId) {
-        navigate(`${ROUTES.METHANE_APPLICATION}/${newId}`);
+        navigate(buildMethaneApplicationRoute(newId));
       }
       return;
     }
@@ -102,6 +107,7 @@ export const ReagentsPage: FC = () => {
                 onChange={(e) => dispatch(setSearchValue(e.target.value))}
               />
               <button
+                type="button"
                 className="search-button"
                 onClick={() => dispatch(getReagentsList())}
               >
@@ -122,22 +128,43 @@ export const ReagentsPage: FC = () => {
 
         {pageError && <Alert variant="danger">{pageError}</Alert>}
 
-        <div style={{ marginBottom: 20 }}>
-          <label>
+        <div
+          style={{
+            margin: '0 auto 20px',
+            width: 'min(100%, 1200px)',
+            padding: '0 16px',
+          }}
+        >
+          <label style={{ display: 'block', marginBottom: 8 }}>
             <b>Поиск по изображению:</b>
           </label>
-          <input type="file" accept="image/*" onChange={handleImageSearch} />
-          {imageEmbedding && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={resetSearch}
-              style={{ marginLeft: 12 }}
-            >
-              Сбросить
-            </Button>
+
+          <div
+            style={{
+              display: 'flex',
+              gap: 12,
+              flexWrap: 'wrap',
+              alignItems: 'center',
+            }}
+          >
+            <input type="file" accept="image/*" onChange={handleImageSearch} />
+
+            {imageEmbedding && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={resetSearch}
+              >
+                Сбросить
+              </Button>
+            )}
+          </div>
+
+          {!ready && (
+            <div style={{ marginTop: 10 }}>
+              Подготовка моделей... {Math.round(progress)}%
+            </div>
           )}
-          {!ready && <div>Подготовка моделей... {Math.round(progress)}%</div>}
         </div>
 
         {loading && (
@@ -153,7 +180,7 @@ export const ReagentsPage: FC = () => {
             <ReagentCard
               key={reagent.id}
               reagent={reagent}
-              onClick={() => navigate(`${ROUTES.REAGENT}/${reagent.id}`)}
+              onClick={() => navigate(buildReagentRoute(reagent.id!))}
               onAddToCart={() => handleAddToDraft(reagent.id!)}
               isInCart={draftItems.some((item) => item.reagent?.id === reagent.id)}
               similarityPercent={imageEmbedding ? reagent.score * 100 : undefined}

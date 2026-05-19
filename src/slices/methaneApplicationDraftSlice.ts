@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { api } from '../api';
+import { api } from '../api/index';
 import type { Reagent } from '../modules/types';
 import type { RootState } from '../store';
 

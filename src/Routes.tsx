@@ -9,6 +9,10 @@ export const ROUTES = {
   METHANE_APPLICATION: '/methane-application',
 } as const;
 
+export const buildReagentRoute = (id: string | number) => `/reagents/${id}`;
+export const buildMethaneApplicationRoute = (id: string | number) =>
+  `/methane-application/${id}`;
+
 export type RouteKeyType = keyof typeof ROUTES;
 
 export const ROUTE_LABELS = {

@@ -1,4 +1,5 @@
 import { Api } from './Api';
+import { destapi } from "../target_config";
 
 export const getStoredToken = () =>
   sessionStorage.getItem('token') ||
@@ -6,7 +7,7 @@ export const getStoredToken = () =>
   '';
 
 export const api = new Api({
-  baseURL: 'http://localhost:8080',
+  baseURL: destapi,
   secure: true,
   securityWorker: () => {
     const token = getStoredToken();

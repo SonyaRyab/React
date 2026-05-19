@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
-import { api } from '../api';
+import { api } from '../api/index';
 import { resetApplicationsFilters } from './applicationsSlice';
 
 type UserRole = 'researcher' | 'professor' | 'admin' | null;

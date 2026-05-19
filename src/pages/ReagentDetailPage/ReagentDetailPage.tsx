@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import type { FC } from "react";
 import { BreadCrumbs } from "../../components/BreadCrumbs/BreadCrumbs";
 import { Spinner, Button } from "react-bootstrap";
-import { ROUTES, ROUTE_LABELS } from "../../Routes";
+import { ROUTES, ROUTE_LABELS, buildReagentRoute } from "../../Routes";
 import { getReagentById, getReagents } from "../../modules/api";
 import type { Reagent } from "../../modules/types";
 import { ReagentCard } from "../../components/ReagentCard/ReagentCard";
@@ -163,7 +163,7 @@ export const ReagentDetailPage: FC<ReagentDetailPageProps> = () => {
             <ReagentCard
               key={item.id}
               reagent={item}
-              onClick={() => navigate(`${ROUTES.REAGENTS}/${item.id}`)}
+              onClick={() => navigate(buildReagentRoute(item.id!))}
             />
           ))}
         </div>

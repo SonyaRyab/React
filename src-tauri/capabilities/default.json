@@ -6,6 +6,15 @@
     "main"
   ],
   "permissions": [
-    "core:default"
+    "cors-fetch:default",
+    {
+      "identifier": "http:default",
+      "allow": [{ "url": "http://172.27.61.159" }],
+      "deny": []
+    },
+    "core:default",
+    "http:allow-fetch",
+    "http:allow-fetch-read-body",
+    "http:allow-fetch-send"
   ]
 }
