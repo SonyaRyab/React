@@ -83,14 +83,17 @@ export const registerUserAsync = createAsyncThunk<
   boolean,
   { login: string; name: string; pass: string },
   { rejectValue: string }
->('user/registerUserAsync', async (payload, { rejectWithValue }) => {
-  try {
-    await axios.post('http://localhost:8080/auth/register', payload);
-    return true;
-  } catch (error: any) {
-    return rejectWithValue(getErrorMessage(error));
+>(
+  "user/registerUserAsync",
+  async (payload, { rejectWithValue }) => {
+    try {
+      await api.auth.registerCreate(payload)
+      return true
+    } catch (error: any) {
+      return rejectWithValue(getErrorMessage(error))
+    }
   }
-});
+)
 
 export const logoutUserAsync = createAsyncThunk<
   boolean,

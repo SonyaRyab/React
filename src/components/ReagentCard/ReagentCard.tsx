@@ -14,7 +14,7 @@ interface Props {
 }
 
 export const ReagentCard: FC<Props> = ({ reagent, onClick, onAddToCart, isInCart, similarityPercent }) => (
-  <Card className="reagent-card" onClick={onClick} style={{ cursor: "pointer" }}>
+  <Card className="reagent-card product-card" onClick={onClick} style={{ cursor: "pointer" }}>    
     <div className="product-title-container">
       <Card.Title className="product-name">{reagent.name}</Card.Title>
     </div>
