@@ -7,10 +7,6 @@ import defaultImg from '../assets/default_image.jpg';
 
 import type { Reagent } from './types';
 
-// export const CITIES_MOCK = {
-//   cities: [],
-// };
-
 export const REAGENTS_MOCK: Reagent[] = [
   {
     id: 1,

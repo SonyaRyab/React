@@ -11,20 +11,8 @@ import ModeratorApplicationsPage from './pages/ModeratorApplicationsPage/Moderat
 import ProtectedRoute from './components/ProtectedRoute';
 import { HomePage } from "./pages/HomePage/HomePage";
 import { ROUTES } from './Routes';
-import { invoke } from "@tauri-apps/api/core";
-import { useEffect } from 'react';
 
 function App() {
-  useEffect(()=>{
-    invoke('tauri', {cmd:'create'})
-      .then(() =>{console.log("Tauri launched")})
-      .catch(() =>{console.log("Tauri not launched")})
-    return () =>{
-      invoke('tauri', {cmd:'close'})
-        .then(() =>{console.log("Tauri launched")})
-        .catch(() =>{console.log("Tauri not launched")})
-    }
-  }, [])
   return (
     <Routes>
       <Route 

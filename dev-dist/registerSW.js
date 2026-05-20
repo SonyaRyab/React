@@ -1,1 +1,0 @@
-if('serviceWorker' in navigator) navigator.serviceWorker.register('/SonyaRyab/methane_sabatier_reaction.git/dev-sw.js?dev-sw', { scope: '/SonyaRyab/methane_sabatier_reaction.git/', type: 'classic' })
