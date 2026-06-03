@@ -1,6 +1,5 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Route, Routes, Navigate } from 'react-router-dom';
-
 import { ReagentsPage } from './pages/ReagentsPage/ReagentsPage';
 import { ReagentDetailPage } from './pages/ReagentDetailPage/ReagentDetailPage';
 import LoginPage from './pages/LoginPage/LoginPage';
@@ -10,6 +9,7 @@ import ApplicationsPage from './pages/ApplicationsPage/ApplicationsPage';
 import ModeratorApplicationsPage from './pages/ModeratorApplicationsPage/ModeratorApplicationsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { HomePage } from "./pages/HomePage/HomePage";
+import { FeedPage } from "./pages/FeedPage/FeedPage";
 import { ROUTES } from './Routes';
 
 function App() {
@@ -56,6 +56,15 @@ function App() {
         element={
           <ProtectedRoute allowedRoles={['professor', 'admin']}>
             <ModeratorApplicationsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={ROUTES.FEED}
+        element={
+          <ProtectedRoute requireAuth>
+            <FeedPage />
           </ProtectedRoute>
         }
       />

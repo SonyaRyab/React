@@ -7,6 +7,7 @@ export const ROUTES = {
   APPLICATIONS: '/applications',
   MODERATOR_APPLICATIONS: '/moderator/applications',
   METHANE_APPLICATION: '/methane-application',
+  FEED: "/feed",
 } as const;
 
 export const buildReagentRoute = (id: string | number) => `/reagents/${id}`;
@@ -23,4 +24,5 @@ export const ROUTE_LABELS = {
   REGISTER: 'Регистрация',
   APPLICATIONS: 'Мои заявки',
   MODERATOR_APPLICATIONS: 'Заявки пользователей',
+  FEED: "Лента Тик ток",
 } as const;

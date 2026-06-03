@@ -83,6 +83,12 @@ const Header = () => {
             )} */}
           </Nav>
 
+          {isAuthenticated && (
+            <Nav.Link as={Link} to={ROUTES.FEED}>
+              Лента
+            </Nav.Link>
+          )}
+
           <Nav className="align-items-center gap-2">
             {isAuthenticated && username && (
               <Navbar.Text className="app-navbar-username">{username}</Navbar.Text>
@@ -105,6 +111,7 @@ const Header = () => {
               </Button>
             )}
           </Nav>
+
         </Navbar.Collapse>
       </Container>
     </Navbar>

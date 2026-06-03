@@ -26,6 +26,11 @@ import {
   confirmDraftApplication,
   fetchApplicationById,
   clearCurrentApplication,
+  changeApplicationStatus,
+  fetchAllApplications,
+  setApplicationsFilter,
+  setPollingEnabled,
+  setCurrentPage,
 } from '../../slices/applicationsSlice';
 
 import { formatDateTimeRu } from '../../utils/format';

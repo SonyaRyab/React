@@ -63,6 +63,14 @@ interface ApplicationsState {
   error: string | null;
   filters: ApplicationsFilters;
   pollingEnabled: boolean;
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+}
+
+interface PaginatedApplicationsResponse {
+  data: any[];
+  total: number;
 }
 
 const today = new Date();
@@ -80,6 +88,9 @@ const initialState: ApplicationsState = {
     creator: '',
   },
   pollingEnabled: true,
+  currentPage: 1,
+  totalPages: 1,
+  pageSize: 10,
 };
 
 const getErrorMessage = (error: any): string =>
@@ -237,6 +248,7 @@ const applicationsSlice = createSlice({
       action: PayloadAction<{ key: K; value: ApplicationsFilters[K] }>
     ) => {
       state.filters[action.payload.key] = action.payload.value;
+      state.currentPage = 1;
     },
     resetApplicationsFilters: (state) => {
       state.filters = {
@@ -245,12 +257,16 @@ const applicationsSlice = createSlice({
         createdTo: todayValue,
         creator: '',
       };
+      state.currentPage = 1;
     },
     setPollingEnabled: (state, action: PayloadAction<boolean>) => {
       state.pollingEnabled = action.payload;
     },
     clearCurrentApplication: (state) => {
       state.currentItem = null;
+    },
+    setCurrentPage: (state, action: PayloadAction<number>) => {
+      state.currentPage = action.payload;
     },
   },
   extraReducers: (builder) =>
@@ -320,6 +336,7 @@ export const {
   resetApplicationsFilters,
   setPollingEnabled,
   clearCurrentApplication,
+  setCurrentPage,
 } = applicationsSlice.actions;
 
 export default applicationsSlice.reducer;

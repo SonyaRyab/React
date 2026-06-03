@@ -2,7 +2,7 @@ import { REAGENTS_MOCK } from "./mock";
 import type Reagent from "./types";
 import { API_BASE } from "../api/config";
 
-const API_ORIGIN = API_BASE;
+const API_ORIGIN = API_BASE.replace(/\/$/, "");
 
 export async function getReagents(search = ""): Promise<Reagent[]> {
   try {
@@ -16,7 +16,9 @@ export async function getReagents(search = ""): Promise<Reagent[]> {
       }
     );
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
 
     const result = await response.json();
     return Array.isArray(result) ? result : result.data ?? [];
@@ -38,7 +40,9 @@ export async function getReagentById(id: string): Promise<Reagent | null> {
       },
     });
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
 
     const result = await response.json();
     return result.data ?? result ?? null;
@@ -60,7 +64,9 @@ export async function getCartIcon(): Promise<{ count: number }> {
       },
     });
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
 
     const result = await response.json();
     const count = Array.isArray(result?.reagents)
@@ -74,4 +80,24 @@ export async function getCartIcon(): Promise<{ count: number }> {
   } catch {
     return { count: 0 };
   }
+}
+
+export async function getFeed(): Promise<number[]> {
+  const token =
+    sessionStorage.getItem("token") || localStorage.getItem("token");
+
+  const response = await fetch(`${API_ORIGIN}/api/feed`, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  const result = await response.json();
+  return Array.isArray(result.ids) ? result.ids : [];
 }
