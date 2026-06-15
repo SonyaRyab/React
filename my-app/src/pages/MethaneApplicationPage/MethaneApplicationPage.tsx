@@ -227,17 +227,6 @@ export const MethaneApplicationPage: FC = () => {
         {editableDraft && (
           <div className="methane-page-form-block">
             <Form.Group className="mb-3">
-              <Form.Label>Тема</Form.Label>
-              <Form.Control
-                type="text"
-                name="topic"
-                value={methaneData.topic ?? ''}
-                onChange={handleInputChange}
-                placeholder="Введите тему заявки"
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
               <Form.Label>Температура, °C</Form.Label>
               <div className="d-flex gap-2">
                 <Form.Control
@@ -289,7 +278,6 @@ export const MethaneApplicationPage: FC = () => {
 
         {!editableDraft && currentItem && (
           <div className="methane-page-form-block">
-            <p><b>Тема:</b> {currentItem.name || '-'}</p>
             <p><b>Статус:</b> {currentItem.status || '-'}</p>
             <p><b>Температура:</b> {currentItem.temperature ?? '-'}</p>
             <p>
@@ -368,30 +356,30 @@ export const MethaneApplicationPage: FC = () => {
                           >
                             Сохранить количество
                           </Button>
-                          <Button
+                          {/* <Button
                             variant="outline-success"
                             size="sm"
                             onClick={() => handleSaveReagentCount(item.id, item.count)}
                           >
                             Изменить кол-во услуги
-                          </Button>
+                          </Button> */}
                           <Button
                             variant="danger"
                             size="sm"
                             onClick={() => handleRemove(item.id)}
                           >
-                            Удалить
+                            Удалить услугу
                           </Button>
                         </div>
 
                         <div className="methane-actions d-flex gap-2 flex-wrap">
-                          <Button
+                          {/* <Button
                             variant="primary"
                             onClick={handleSaveDraftForm}
                             disabled={!draftState.app_id}
                           >
-                            Сохранить поле заявки
-                          </Button>
+                            Сохранить
+                          </Button> */}
 
                           <Button
                             variant="success"

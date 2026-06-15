@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Alert, Button, Container, Form, Table } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import Header from '../../components/Header/Header';
@@ -19,6 +19,8 @@ const ModeratorApplicationsPage = () => {
     (state: RootState) => state.applications
   );
 
+  const [temperatureValues, setTemperatureValues] = useState<Record<number, string>>({});
+
   useEffect(() => {
     dispatch(fetchAllApplications());
 
@@ -30,6 +32,22 @@ const ModeratorApplicationsPage = () => {
 
     return () => window.clearInterval(timer);
   }, [dispatch, pollingEnabled, filters.status, filters.createdFrom, filters.createdTo, filters.creator]);
+
+  useEffect(() => {
+    setTemperatureValues((prev) => {
+      const next = { ...prev };
+
+      items.forEach((item) => {
+        if (next[item.id] === undefined) {
+          next[item.id] = item.temperature !== undefined && item.temperature !== null
+            ? String(item.temperature)
+            : '';
+        }
+      });
+
+      return next;
+    });
+  }, [items]);
 
   const filteredItems = useMemo(() => {
     const creator = filters.creator.trim().toLowerCase();
@@ -53,75 +71,106 @@ const ModeratorApplicationsPage = () => {
     dispatch(fetchAllApplications());
   };
 
+  const handleTemperatureChange = (id: number, value: string) => {
+    setTemperatureValues((prev) => ({
+      ...prev,
+      [id]: value,
+    }));
+  };
+
   return (
     <>
       <Header />
       <LoadingOverlay show={loading} text="Обновление списка заявок..." />
-
       <Container>
         <h2 className="mb-4">Все заявки</h2>
-
         <div className="mb-4 d-flex flex-wrap gap-3 align-items-end">
-          <Form.Group>
-            <Form.Label>Статус</Form.Label>
-            <Form.Select
-              value={filters.status}
-              onChange={(e) =>
-                dispatch(setApplicationsFilter({ key: 'status', value: e.target.value }))
-              }
-            >
-              <option value="today">За сегодня</option>
-              <option value="">Все</option>
-              <option value="draft">Черновики</option>
-              <option value="formed">Сформированные</option>
-              <option value="completed">Завершенные</option>
-              <option value="rejected">Отклоненные</option>
-            </Form.Select>
-          </Form.Group>
+          <div className="d-flex flex-column justify-content-end">
+            <Form.Group>
+              <Form.Label>Статус</Form.Label>
+              <Form.Select
+                value={filters.status}
+                onChange={(e) =>
+                  dispatch(setApplicationsFilter({ key: 'status', value: e.target.value }))
+                }
+              >
+                <option value="today">За сегодня</option>
+                <option value="">Все</option>
+                <option value="draft">Черновики</option>
+                <option value="formed">Сформированные</option>
+                <option value="completed">Завершенные</option>
+                <option value="rejected">Отклоненные</option>
+              </Form.Select>
+              <small className="text-muted d-block" style={{ minHeight: '20px' }}>
+                &nbsp;
+              </small>
+            </Form.Group>
+          </div>
 
-          <Form.Group>
-            <Form.Label>Дата начала</Form.Label>
-            <Form.Control
-              type="date"
-              value={filters.createdFrom}
-              onChange={(e) =>
-                dispatch(setApplicationsFilter({ key: 'createdFrom', value: e.target.value }))
-              }
-            />
-            <small>{formatDateRuInput(filters.createdFrom)}</small>
-          </Form.Group>
+          <div className="d-flex flex-column justify-content-end">
+            <Form.Group>
+              <Form.Label>Дата начала</Form.Label>
+              <Form.Control
+                type="date"
+                value={filters.createdFrom}
+                onChange={(e) =>
+                  dispatch(setApplicationsFilter({ key: 'createdFrom', value: e.target.value }))
+                }
+              />
+              <small className="text-muted d-block" style={{ minHeight: '20px' }}>
+                {formatDateRuInput(filters.createdFrom) || '\u00A0'}
+              </small>
+            </Form.Group>
+          </div>
 
-          <Form.Group>
-            <Form.Label>Дата окончания</Form.Label>
-            <Form.Control
-              type="date"
-              value={filters.createdTo}
-              onChange={(e) =>
-                dispatch(setApplicationsFilter({ key: 'createdTo', value: e.target.value }))
-              }
-            />
-            <small>{formatDateRuInput(filters.createdTo)}</small>
-          </Form.Group>
+          <div className="d-flex flex-column justify-content-end">
+            <Form.Group>
+              <Form.Label>Дата окончания</Form.Label>
+              <Form.Control
+                type="date"
+                value={filters.createdTo}
+                onChange={(e) =>
+                  dispatch(setApplicationsFilter({ key: 'createdTo', value: e.target.value }))
+                }
+              />
+              <small className="text-muted d-block" style={{ minHeight: '20px' }}>
+                {formatDateRuInput(filters.createdTo) || '\u00A0'}
+              </small>
+            </Form.Group>
+          </div>
 
-          <Form.Group>
-            <Form.Label>Создатель</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Введите логин или имя"
-              value={filters.creator}
-              onChange={(e) =>
-                dispatch(setApplicationsFilter({ key: 'creator', value: e.target.value }))
-              }
-            />
-          </Form.Group>
+          <div className="d-flex flex-column justify-content-end">
+            <Form.Group>
+              <Form.Label>Создатель</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Введите логин или имя"
+                value={filters.creator}
+                onChange={(e) =>
+                  dispatch(setApplicationsFilter({ key: 'creator', value: e.target.value }))
+                }
+              />
+              <small className="text-muted d-block" style={{ minHeight: '20px' }}>
+                &nbsp;
+              </small>
+            </Form.Group>
+          </div>
 
-          <Form.Check
-            type="switch"
-            id="polling-switch"
-            label="Polling 5 сек"
-            checked={pollingEnabled}
-            onChange={(e) => dispatch(setPollingEnabled(e.target.checked))}
-          />
+          <div className="d-flex flex-column justify-content-end">
+            <div>
+              <Form.Label className="d-block"> </Form.Label>
+              <Form.Check
+                type="switch"
+                id="polling-switch"
+                label="Polling"
+                checked={pollingEnabled}
+                onChange={(e) => dispatch(setPollingEnabled(e.target.checked))}
+              />
+              <small className="text-muted d-block" style={{ minHeight: '20px' }}>
+                &nbsp;
+              </small>
+            </div>
+          </div>
         </div>
 
         {error && <Alert variant="danger">{error}</Alert>}
@@ -134,8 +183,7 @@ const ModeratorApplicationsPage = () => {
           <Table striped bordered hover responsive>
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Тема</th>
+                <th>Номер</th>
                 <th>Статус</th>
                 <th>Пользователь</th>
                 <th>Температура</th>
@@ -149,30 +197,38 @@ const ModeratorApplicationsPage = () => {
               {filteredItems.map((item) => (
                 <tr key={item.id}>
                   <td>{item.id}</td>
-                  <td>{item.topic || item.name || 'Без темы'}</td>
                   <td>{item.status || '-'}</td>
                   <td>{item.researcher?.username || item.researcher?.login || '-'}</td>
-                  <td>{item.temperature ?? '-'}</td>
+                  <td style={{ minWidth: '160px' }}>
+                    <Form.Control
+                      type="number"
+                      placeholder="Введите температуру"
+                      value={temperatureValues[item.id] ?? ''}
+                      onChange={(e) => handleTemperatureChange(item.id, e.target.value)}
+                    />
+                  </td>
                   <td>{item.methaneyield ?? '-'}</td>
                   <td>{formatDateTimeRu(item.datecreate)}</td>
                   <td>{formatDateTimeRu(item.dateupdate)}</td>
-                  <td className="d-flex gap-2 flex-wrap">
-                    <Button
-                      size="sm"
-                      variant="success"
-                      onClick={() => handleComplete(item.id, 'completed')}
-                      disabled={item.status === 'completed'}
-                    >
-                      Завершить
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      onClick={() => handleComplete(item.id, 'rejected')}
-                      disabled={item.status === 'rejected'}
-                    >
-                      Отклонить
-                    </Button>
+                  <td style={{ minWidth: '220px', verticalAlign: 'middle' }}>
+                    <div className="d-flex gap-2 flex-wrap">
+                      <Button
+                        size="sm"
+                        variant="success"
+                        onClick={() => handleComplete(item.id, 'completed')}
+                        disabled={item.status === 'completed'}
+                      >
+                        Завершить
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        onClick={() => handleComplete(item.id, 'rejected')}
+                        disabled={item.status === 'rejected'}
+                      >
+                        Отклонить
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
