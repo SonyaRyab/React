@@ -1,5 +1,3 @@
-//список заявок, фильтры, polling, смена статуса
-
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { api } from '../api';
 
@@ -8,6 +6,7 @@ export type ApplicationStatus =
   | 'formed'
   | 'completed'
   | 'rejected'
+  | 'today'
   | string;
 
 export interface ApplicationUser {
@@ -19,11 +18,6 @@ export interface ApplicationUser {
   email?: string;
 }
 
-export interface ApplicationReagent {
-  methane_yield?: number;
-  quantity?: number;
-}
-
 export interface ApplicationReagentDetails {
   id?: number;
   name?: string;
@@ -33,9 +27,9 @@ export interface ApplicationReagentDetails {
   molarmass?: number;
 }
 
-export interface ApplicationItem {
+export interface ApplicationReagent {
   id?: number;
-  quantity?: number;
+  volume?: number;
   methaneyield?: number;
   reagent?: ApplicationReagentDetails | null;
 }
@@ -48,6 +42,8 @@ export interface ApplicationItem {
   dateupdate?: string;
   datefinish?: string;
   temperature?: number;
+  methaneyield?: number;
+  topic?: string;
   researcher?: ApplicationUser | null;
   professor?: ApplicationUser | null;
   reagents?: ApplicationReagent[];
@@ -69,15 +65,18 @@ interface ApplicationsState {
   pollingEnabled: boolean;
 }
 
+const today = new Date();
+const todayValue = `${today.getFullYear()}-${`${today.getMonth() + 1}`.padStart(2, '0')}-${`${today.getDate()}`.padStart(2, '0')}`;
+
 const initialState: ApplicationsState = {
   items: [],
   currentItem: null,
   loading: false,
   error: null,
   filters: {
-    status: '',
-    createdFrom: '',
-    createdTo: '',
+    status: 'today',
+    createdFrom: todayValue,
+    createdTo: todayValue,
     creator: '',
   },
   pollingEnabled: true,
@@ -89,10 +88,40 @@ const getErrorMessage = (error: any): string =>
   error?.message ||
   'Ошибка запроса';
 
+const normalizeItem = (item: any): ApplicationItem => ({
+  id: Number(item.id),
+  name: item.name ?? item.topic ?? '',
+  topic: item.name ?? item.topic ?? '',
+  status: item.status ?? '',
+  datecreate: item.datecreate ?? item.date_create ?? '',
+  dateupdate: item.dateupdate ?? item.date_update ?? '',
+  datefinish: item.datefinish ?? item.date_finish ?? '',
+  temperature: item.temperature ?? null,
+  methaneyield: item.methaneyield ?? item.methane_yield ?? null,
+  researcher: item.researcher ?? null,
+  professor: item.professor ?? null,
+  reagents: item.reagents ?? [],
+});
+
 const normalizeArray = (payload: any): ApplicationItem[] => {
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.data)) return payload.data;
-  return [];
+  const source = Array.isArray(payload) ? payload : Array.isArray(payload?.data) ? payload.data : [];
+  return source.map(normalizeItem);
+};
+
+const isInToday = (value?: string) => {
+  if (!value) return false;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+
+  const now = new Date();
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(now);
+  end.setHours(23, 59, 59, 999);
+
+  return date >= start && date <= end;
 };
 
 export const fetchMyApplications = createAsyncThunk<
@@ -120,8 +149,12 @@ export const fetchAllApplications = createAsyncThunk<
     const response = await api.api.methanesList?.();
     let items = normalizeArray(response?.data);
 
-    if (status) {
+    if (status && status !== 'today') {
       items = items.filter((item) => item.status === status);
+    }
+
+    if (status === 'today') {
+      items = items.filter((item) => isInToday(item.datecreate));
     }
 
     if (createdFrom) {
@@ -149,7 +182,7 @@ export const fetchAllApplications = createAsyncThunk<
 });
 
 export const fetchApplicationById = createAsyncThunk<
-  any,
+  ApplicationItem,
   number,
   { rejectValue: string }
 >(
@@ -157,14 +190,9 @@ export const fetchApplicationById = createAsyncThunk<
   async (id, { rejectWithValue }) => {
     try {
       const response = await api.api.methanesDetail(id);
-      return response.data;
+      return normalizeItem(response.data);
     } catch (error: any) {
-      return rejectWithValue(
-        error?.response?.data?.error ||
-        error?.response?.data?.message ||
-        error?.message ||
-        'Не удалось загрузить заявку'
-      );
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -175,7 +203,11 @@ export const confirmDraftApplication = createAsyncThunk<
   { rejectValue: string }
 >('applications/confirmDraftApplication', async ({ id, payload }, { rejectWithValue }) => {
   try {
-    await api.api.methanesFormUpdate(id, payload);
+    await api.api.methanesFormUpdate(id, {
+      name: payload.name,
+      temperature: payload.temperature,
+      methane_yield: payload.methaneyield,
+    });
     await api.api.methanesCompleteUpdate(id, { status: 'formed' });
     return true;
   } catch (error: any) {
@@ -208,9 +240,9 @@ const applicationsSlice = createSlice({
     },
     resetApplicationsFilters: (state) => {
       state.filters = {
-        status: '',
-        createdFrom: '',
-        createdTo: '',
+        status: 'today',
+        createdFrom: todayValue,
+        createdTo: todayValue,
         creator: '',
       };
     },
@@ -235,7 +267,6 @@ const applicationsSlice = createSlice({
         state.loading = false;
         state.error = action.payload ?? 'Failed to fetch applications';
       })
-
       .addCase(fetchAllApplications.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -248,7 +279,6 @@ const applicationsSlice = createSlice({
         state.loading = false;
         state.error = action.payload ?? 'Failed to fetch all applications';
       })
-
       .addCase(fetchApplicationById.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -261,7 +291,6 @@ const applicationsSlice = createSlice({
         state.loading = false;
         state.error = action.payload ?? 'Failed to fetch application';
       })
-
       .addCase(confirmDraftApplication.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -273,7 +302,6 @@ const applicationsSlice = createSlice({
         state.loading = false;
         state.error = action.payload ?? 'Failed to confirm application';
       })
-
       .addCase(changeApplicationStatus.pending, (state) => {
         state.loading = true;
         state.error = null;

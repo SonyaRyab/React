@@ -1,7 +1,7 @@
 import './ReagentsPage.css';
 import type { FC, ChangeEvent } from 'react';
-import { useEffect, useMemo } from 'react';
-import { Spinner, Button } from 'react-bootstrap';
+import { useEffect, useMemo, useState } from 'react';
+import { Spinner, Button, Alert } from 'react-bootstrap';
 import { ReagentCard } from '../../components/ReagentCard/ReagentCard';
 import { ROUTES, ROUTE_LABELS } from '../../Routes';
 import { BreadCrumbs } from '../../components/BreadCrumbs/BreadCrumbs';
@@ -11,16 +11,13 @@ import { useReagentSearch } from '../../hooks/useReagentSearch';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
 import { getReagentsList, setSearchValue } from '../../slices/reagentsSlice';
-import {
-  addReagentToMethaneApplication,
-  loadDraftFromServer,
-} from '../../slices/methaneApplicationDraftSlice';
-import { api } from '../../api';
+import { addReagentToMethaneApplication } from '../../slices/methaneApplicationDraftSlice';
 import Header from '../../components/Header/Header';
 
 export const ReagentsPage: FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const [pageError, setPageError] = useState('');
 
   const appid = useSelector(
     (state: RootState) => state.methaneApplicationDraft.app_id
@@ -33,6 +30,8 @@ export const ReagentsPage: FC = () => {
   const draftItems = useSelector(
     (state: RootState) => state.methaneApplicationDraft.reagents
   );
+
+  const draftCount = draftItems.reduce((sum, item) => sum + item.count, 0);
 
   useEffect(() => {
     dispatch(getReagentsList());
@@ -63,37 +62,28 @@ export const ReagentsPage: FC = () => {
   };
 
   const openDraft = async () => {
-    try {
-      if (appid) {
-        navigate(`${ROUTES.METHANE_APPLICATION}/${appid}`);
-        return;
+    if (!appid || draftCount === 0) return;
+    navigate(`${ROUTES.METHANE_APPLICATION}/${appid}`);
+  };
+
+  const handleAddToDraft = async (reagentId: number) => {
+    setPageError('');
+    const result = await dispatch(
+      addReagentToMethaneApplication({
+        reagentId,
+        count: 1,
+      })
+    );
+
+    if (addReagentToMethaneApplication.fulfilled.match(result)) {
+      const newId = result.payload?.id;
+      if (newId) {
+        navigate(`${ROUTES.METHANE_APPLICATION}/${newId}`);
       }
-
-      try {
-        const response = await api.api.methanesDraftList();
-        const draft = response.data;
-
-        if (draft?.id) {
-          dispatch(loadDraftFromServer(draft));
-          navigate(`${ROUTES.METHANE_APPLICATION}/${draft.id}`);
-          return;
-        }
-      } catch {}
-
-      const created = await api.api.methanesDraftCreate();
-      const newDraft = created.data;
-
-      if (newDraft?.id) {
-        dispatch(loadDraftFromServer(newDraft));
-        navigate(`${ROUTES.METHANE_APPLICATION}/${newDraft.id}`);
-        return;
-      }
-
-      alert('Не удалось создать черновик заявки');
-    } catch (error) {
-      console.error('Не удалось открыть черновик заявки', error);
-      alert('Не удалось открыть заявку');
+      return;
     }
+
+    setPageError(result.payload || 'Не удалось добавить реагент в заявку');
   };
 
   return (
@@ -120,10 +110,17 @@ export const ReagentsPage: FC = () => {
             </div>
           </div>
 
-          <Button variant="primary" onClick={openDraft}>
-            ({draftItems.reduce((sum, item) => sum + item.count, 0)})
+          <Button
+            variant="primary"
+            onClick={openDraft}
+            disabled={!appid || draftCount === 0}
+            title={!appid || draftCount === 0 ? 'Корзина пуста' : 'Открыть заявку'}
+          >
+            Заявка ({draftCount})
           </Button>
         </div>
+
+        {pageError && <Alert variant="danger">{pageError}</Alert>}
 
         <div style={{ marginBottom: 20 }}>
           <label>
@@ -157,7 +154,7 @@ export const ReagentsPage: FC = () => {
               key={reagent.id}
               reagent={reagent}
               onClick={() => navigate(`${ROUTES.REAGENT}/${reagent.id}`)}
-              onAddToCart={() => dispatch(addReagentToMethaneApplication(reagent))}
+              onAddToCart={() => handleAddToDraft(reagent.id!)}
               isInCart={draftItems.some((item) => item.reagent?.id === reagent.id)}
               similarityPercent={imageEmbedding ? reagent.score * 100 : undefined}
             />
@@ -167,3 +164,5 @@ export const ReagentsPage: FC = () => {
     </>
   );
 };
+
+export default ReagentsPage;

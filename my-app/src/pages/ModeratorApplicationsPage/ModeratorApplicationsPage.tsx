@@ -1,5 +1,3 @@
-//список заявок модератора
-
 import { useEffect, useMemo } from 'react';
 import { Alert, Button, Container, Form, Table } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,8 +7,10 @@ import {
   changeApplicationStatus,
   fetchAllApplications,
   setApplicationsFilter,
+  setPollingEnabled,
 } from '../../slices/applicationsSlice';
 import LoadingOverlay from '../../components/LoadingOverlay';
+import { formatDateTimeRu } from '../../utils/format';
 
 const ModeratorApplicationsPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -29,7 +29,7 @@ const ModeratorApplicationsPage = () => {
     }, 5000);
 
     return () => window.clearInterval(timer);
-  }, [dispatch, pollingEnabled, filters.status, filters.createdFrom, filters.createdTo]);
+  }, [dispatch, pollingEnabled, filters.status, filters.createdFrom, filters.createdTo, filters.creator]);
 
   const filteredItems = useMemo(() => {
     const creator = filters.creator.trim().toLowerCase();
@@ -59,7 +59,7 @@ const ModeratorApplicationsPage = () => {
       <Container>
         <h2 className="mb-4">Все заявки</h2>
 
-        <div className="mb-4 d-flex flex-wrap gap-3">
+        <div className="mb-4 d-flex flex-wrap gap-3 align-items-end">
           <Form.Group>
             <Form.Label>Статус</Form.Label>
             <Form.Select
@@ -68,6 +68,7 @@ const ModeratorApplicationsPage = () => {
                 dispatch(setApplicationsFilter({ key: 'status', value: e.target.value }))
               }
             >
+              <option value="today">За сегодня</option>
               <option value="">Все</option>
               <option value="draft">draft</option>
               <option value="formed">formed</option>
@@ -109,6 +110,14 @@ const ModeratorApplicationsPage = () => {
               }
             />
           </Form.Group>
+
+          <Form.Check
+            type="switch"
+            id="polling-switch"
+            label="Polling 5 сек"
+            checked={pollingEnabled}
+            onChange={(e) => dispatch(setPollingEnabled(e.target.checked))}
+          />
         </div>
 
         {error && <Alert variant="danger">{error}</Alert>}
@@ -122,9 +131,11 @@ const ModeratorApplicationsPage = () => {
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Название</th>
+                <th>Тема</th>
                 <th>Статус</th>
                 <th>Исследователь</th>
+                <th>Температура</th>
+                <th>Результат / объемы</th>
                 <th>Дата создания</th>
                 <th>Дата обновления</th>
                 <th>Действия</th>
@@ -134,11 +145,13 @@ const ModeratorApplicationsPage = () => {
               {filteredItems.map((item) => (
                 <tr key={item.id}>
                   <td>{item.id}</td>
-                  <td>{item.name || 'Без названия'}</td>
+                  <td>{item.topic || item.name || 'Без темы'}</td>
                   <td>{item.status || '-'}</td>
                   <td>{item.researcher?.username || item.researcher?.login || '-'}</td>
-                  <td>{item.date_create ? new Date(item.date_create).toLocaleString() : '-'}</td>
-                  <td>{item.date_update ? new Date(item.date_update).toLocaleString() : '-'}</td>
+                  <td>{item.temperature ?? '-'}</td>
+                  <td>{item.methaneyield ?? '-'}</td>
+                  <td>{formatDateTimeRu(item.datecreate)}</td>
+                  <td>{formatDateTimeRu(item.dateupdate)}</td>
                   <td className="d-flex gap-2 flex-wrap">
                     <Button
                       size="sm"

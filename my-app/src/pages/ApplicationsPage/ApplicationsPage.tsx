@@ -9,7 +9,10 @@ import Header from '../../components/Header/Header';
 import LoadingOverlay from '../../components/LoadingOverlay';
 import { ROUTES } from '../../Routes';
 import type { AppDispatch, RootState } from '../../store';
-import { fetchMyApplications } from '../../slices/applicationsSlice';
+import { 
+    fetchAllApplications,
+    setApplicationsFilter, 
+} from '../../slices/applicationsSlice';
 
 const ApplicationsPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -20,7 +23,17 @@ const ApplicationsPage = () => {
   );
 
   useEffect(() => {
-    dispatch(fetchMyApplications());
+    const now = new Date();
+
+    const from = new Date(now);
+    from.setHours(0, 0, 0, 0);
+
+    const to = new Date(now);
+    to.setHours(23, 59, 59, 999);
+
+    dispatch(setApplicationsFilter({ key: 'createdFrom', value: from.toISOString() }));
+    dispatch(setApplicationsFilter({ key: 'createdTo', value: to.toISOString() }));
+    dispatch(fetchAllApplications());
   }, [dispatch]);
 
   return (

@@ -1,86 +1,56 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { api } from '../api';
-import { jwtDecode } from "jwt-decode";
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
+import { api } from '../api';
 import { resetApplicationsFilters } from './applicationsSlice';
 
 type UserRole = 'researcher' | 'professor' | 'admin' | null;
 
-type JwtPayload = {
+interface JwtPayload {
   role?: UserRole;
-  username?: string;
-  login?: string;
-  sub?: string;
-  useruuid?: string;
   exp?: number;
-  iat?: number;
-};
+}
 
 interface UserState {
   username: string | null;
+  login: string | null;
   role: UserRole;
   token: string | null;
   isAuthenticated: boolean;
-  error?: string | null;
+  error: string | null;
 }
 
 const clearStoredAuth = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('username');
-  localStorage.removeItem('role');
   localStorage.removeItem('login');
+  localStorage.removeItem('role');
+
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('username');
+  sessionStorage.removeItem('login');
+  sessionStorage.removeItem('role');
 };
 
-const readStoredAuth = () => {
-  const token = localStorage.getItem('token');
-  const username = localStorage.getItem('username') || localStorage.getItem('login');
-  const role = (localStorage.getItem('role') as UserRole) || null;
+const getStoredAuth = () => {
+  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+  const username =
+    sessionStorage.getItem('username') || localStorage.getItem('username');
+  const login = sessionStorage.getItem('login') || localStorage.getItem('login');
+  const role =
+    (sessionStorage.getItem('role') || localStorage.getItem('role')) as UserRole;
 
-  if (!token) {
-    return {
-      username: null,
-      role: null,
-      token: null,
-      isAuthenticated: false,
-    };
-  }
-
-  try {
-    const decoded = jwtDecode<JwtPayload>(token);
-    if (decoded.exp && decoded.exp * 1000 <= Date.now()) {
-      clearStoredAuth();
-      return {
-        username: null,
-        role: null,
-        token: null,
-        isAuthenticated: false,
-      };
-    }
-
-    return {
-      username,
-      role,
-      token,
-      isAuthenticated: true,
-    };
-  } catch {
-    clearStoredAuth();
-    return {
-      username: null,
-      role: null,
-      token: null,
-      isAuthenticated: false,
-    };
-  }
+  return { token, username, login, role };
 };
 
-const initialAuth = readStoredAuth();
+const stored = getStoredAuth();
 
 const initialState: UserState = {
-  username: initialAuth.username,
-  role: initialAuth.role,
-  token: initialAuth.token,
-  isAuthenticated: initialAuth.isAuthenticated,
+  username: stored.username || null,
+  login: stored.login || null,
+  role: stored.role || null,
+  token: stored.token || null,
+  isAuthenticated: Boolean(stored.token),
   error: null,
 };
 
@@ -90,18 +60,19 @@ const getErrorMessage = (error: any): string =>
   error?.message ||
   'Ошибка запроса';
 
-// Асинхронное действие для авторизации
 export const loginUserAsync = createAsyncThunk<
   { accessToken: string; username: string; login: string },
   { login: string; password: string },
   { rejectValue: string }
->('user/loginUserAsync', async (credentials, { rejectWithValue }) => {
+>('user/loginUserAsync', async (payload, { rejectWithValue }) => {
   try {
-    const response = await api.auth.loginCreate(credentials as any);
+    const response = await api.auth.loginCreate(payload);
+    const data = response.data ?? {};
+
     return {
-      accessToken: response.data.accesstoken,
-      username: response.data.username ?? credentials.login,
-      login: response.data.login ?? credentials.login,
+      accessToken: data.accesstoken ?? '',
+      username: data.username ?? data.login ?? payload.login,
+      login: data.login ?? payload.login,
     };
   } catch (error: any) {
     return rejectWithValue(getErrorMessage(error));
@@ -121,7 +92,6 @@ export const registerUserAsync = createAsyncThunk<
   }
 });
 
-// Асинхронное действие для деавторизации
 export const logoutUserAsync = createAsyncThunk<
   boolean,
   void,
@@ -131,13 +101,10 @@ export const logoutUserAsync = createAsyncThunk<
   try {
     if (token) {
       await api.auth.logoutCreate({
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
     }
-  } catch {
-  }
+  } catch {}
 
   dispatch(resetApplicationsFilters());
   return true;
@@ -157,18 +124,20 @@ const userSlice = createSlice({
         const decoded = jwtDecode<JwtPayload>(token);
 
         state.username = action.payload.username;
+        state.login = action.payload.login;
         state.role = decoded.role ?? 'researcher';
         state.token = token;
         state.isAuthenticated = true;
         state.error = null;
 
-        localStorage.setItem('token', token);
-        localStorage.setItem('username', action.payload.username);
-        localStorage.setItem('login', action.payload.login);
-        localStorage.setItem('role', decoded.role ?? 'researcher');
+        sessionStorage.setItem('token', token);
+        sessionStorage.setItem('username', action.payload.username);
+        sessionStorage.setItem('login', action.payload.login);
+        sessionStorage.setItem('role', decoded.role ?? 'researcher');
       })
       .addCase(loginUserAsync.rejected, (state, action) => {
         state.username = null;
+        state.login = null;
         state.role = null;
         state.token = null;
         state.isAuthenticated = false;
@@ -186,6 +155,7 @@ const userSlice = createSlice({
       })
       .addCase(logoutUserAsync.fulfilled, (state) => {
         state.username = null;
+        state.login = null;
         state.role = null;
         state.token = null;
         state.isAuthenticated = false;

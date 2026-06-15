@@ -1,4 +1,4 @@
-import { useEffect, useMemo, type FC } from 'react';
+import { useEffect, useMemo, useState, type FC } from 'react';
 import { Alert, Button, Form, Spinner, Table } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -10,21 +10,25 @@ import type { AppDispatch, RootState } from '../../store';
 
 import {
   setMethaneData,
-  updateReagentCount,
+  updateReagentCountLocal,
   removeReagentFromMethaneApplication,
   clearMethaneApplicationOnServer,
   resetDraft,
-  updateMethaneApplication,
   getMethaneApplication,
   loadDraftFromServer,
+  saveMethaneTemperature,
+  saveMethaneVolume,
+  saveMethaneApplicationForm,
+  saveReagentVolume,
 } from '../../slices/methaneApplicationDraftSlice';
 
-import { 
+import {
   confirmDraftApplication,
   fetchApplicationById,
   clearCurrentApplication,
 } from '../../slices/applicationsSlice';
 
+import { formatDateTimeRu } from '../../utils/format';
 import './MethaneApplicationPage.css';
 
 type ViewReagent = {
@@ -39,6 +43,7 @@ export const MethaneApplicationPage: FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { appid: appidParam } = useParams<{ appid: string }>();
+  const [successText, setSuccessText] = useState('');
 
   const draftState = useSelector((state: RootState) => state.methaneApplicationDraft);
   const applicationsState = useSelector((state: RootState) => state.applications);
@@ -81,12 +86,12 @@ export const MethaneApplicationPage: FC = () => {
 
   const readonlyReagents: ViewReagent[] = useMemo(() => {
     if (!currentItem?.reagents) return [];
-    return currentItem.reagents.map((item, index) => ({
+    return currentItem.reagents.map((item: any, index: number) => ({
       id: item.reagent?.id ?? index + 1,
       name: item.reagent?.name ?? `Реагент #${index + 1}`,
       formula: item.reagent?.formula ?? '-',
       price: Number(item.reagent?.price ?? 0),
-      count: Number(item.quantity ?? 0),
+      count: Number(item.volume ?? 0),
     }));
   }, [currentItem]);
 
@@ -121,28 +126,57 @@ export const MethaneApplicationPage: FC = () => {
 
   const handleDecrease = (reagentId: number, currentCount: number) => {
     if (currentCount <= 1) return;
-    dispatch(updateReagentCount({ reagentId, count: currentCount - 1 }));
+    dispatch(updateReagentCountLocal({ reagentId, count: currentCount - 1 }));
   };
 
   const handleIncrease = (reagentId: number, currentCount: number) => {
-    dispatch(updateReagentCount({ reagentId, count: currentCount + 1 }));
+    dispatch(updateReagentCountLocal({ reagentId, count: currentCount + 1 }));
   };
 
   const handleCountChange = (reagentId: number, value: string) => {
     const nextCount = Number(value);
     if (Number.isNaN(nextCount) || nextCount < 1) return;
-    dispatch(updateReagentCount({ reagentId, count: nextCount }));
+    dispatch(updateReagentCountLocal({ reagentId, count: nextCount }));
   };
 
-  const handleSaveDraft = async () => {
+  const handleSaveTemperature = async () => {
     if (!draftState.app_id) return;
-
-    await dispatch(
-      updateMethaneApplication({
+    const result = await dispatch(
+      saveMethaneTemperature({
         appId: draftState.app_id,
-        methaneData,
+        temperature: methaneData.reagenttemperature ?? '0',
       })
     );
+    if (saveMethaneTemperature.fulfilled.match(result)) {
+      setSuccessText('Температура сохранена');
+    }
+  };
+
+  const handleSaveVolume = async () => {
+    if (!draftState.app_id) return;
+    const result = await dispatch(
+      saveMethaneVolume({
+        appId: draftState.app_id,
+        volume: methaneData.volume ?? '0',
+      })
+    );
+    if (saveMethaneVolume.fulfilled.match(result)) {
+      setSuccessText('Объемы сохранены');
+    }
+  };
+
+  const handleSaveDraftForm = async () => {
+    const result = await dispatch(saveMethaneApplicationForm());
+    if (saveMethaneApplicationForm.fulfilled.match(result)) {
+      setSuccessText('Поля заявки сохранены');
+    }
+  };
+
+  const handleSaveVolume = async (reagentId: number, count: number) => {
+    const result = await dispatch(saveReagentVolume({ reagentId, count }));
+    if (saveReagentVolume.fulfilled.match(result)) {
+      setSuccessText(`Количество для реагента #${reagentId} сохранено`);
+    }
   };
 
   const handleRemove = async (reagentId: number) => {
@@ -164,9 +198,9 @@ export const MethaneApplicationPage: FC = () => {
       confirmDraftApplication({
         id: draftState.app_id,
         payload: {
-          name: methaneData.processname ?? '',
+          name: methaneData.topic ?? '',
           temperature: Number(methaneData.reagenttemperature ?? 0),
-          methaneyield: 0,
+          methaneyield: Number(methaneData.volume ?? 0),
         },
       })
     );
@@ -187,40 +221,58 @@ export const MethaneApplicationPage: FC = () => {
 
       <div className="container methane-page-container">
         <BreadCrumbs
-          crumbs={[
-            { label: ROUTE_LABELS.HOME, path: ROUTES.HOME },
-            { label: ROUTE_LABELS.METHANE_APPLICATION },
-          ]}
+          crumbs={[{ label: ROUTE_LABELS.METHANE_APPLICATION }]}
         />
 
         <h1 className="methane-page-title">{title}</h1>
 
         {loading && <Spinner animation="border" />}
-
         {pageError && <Alert variant="danger">{pageError}</Alert>}
+        {successText && <Alert variant="success">{successText}</Alert>}
 
         {editableDraft && (
           <div className="methane-page-form-block">
             <Form.Group className="mb-3">
-              <Form.Label>Название процесса</Form.Label>
+              <Form.Label>Тема</Form.Label>
               <Form.Control
                 type="text"
-                name="processname"
-                value={methaneData.processname ?? ''}
+                name="topic"
+                value={methaneData.topic ?? ''}
                 onChange={handleInputChange}
-                placeholder="Введите название процесса"
+                placeholder="Введите тему заявки"
               />
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Температура реагирования, °C</Form.Label>
-              <Form.Control
-                type="text"
-                name="reagenttemperature"
-                value={methaneData.reagenttemperature ?? ''}
-                onChange={handleInputChange}
-                placeholder="Например: 300-400"
-              />
+              <Form.Label>Температура, °C</Form.Label>
+              <div className="d-flex gap-2">
+                <Form.Control
+                  type="number"
+                  name="reagenttemperature"
+                  value={methaneData.reagenttemperature ?? ''}
+                  onChange={handleInputChange}
+                  placeholder="Например: 300"
+                />
+                <Button variant="outline-primary" onClick={handleSaveTemperature}>
+                  Сохранить температуру
+                </Button>
+              </div>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Объемы</Form.Label>
+              <div className="d-flex gap-2">
+                <Form.Control
+                  type="number"
+                  name="volume"
+                  value={methaneData.volume ?? ''}
+                  onChange={handleInputChange}
+                  placeholder="Введите объем"
+                />
+                <Button variant="outline-primary" onClick={handleSaveVolume}>
+                  Сохранить объемы
+                </Button>
+              </div>
             </Form.Group>
 
             <Form.Group className="mb-4">
@@ -234,22 +286,24 @@ export const MethaneApplicationPage: FC = () => {
                 placeholder="Комментарий к заявке"
               />
             </Form.Group>
+
+            <Button variant="primary" onClick={handleSaveDraftForm}>
+              Сохранить поля заявки
+            </Button>
           </div>
         )}
 
         {!editableDraft && currentItem && (
           <div className="methane-page-form-block">
-            <p><b>Название:</b> {currentItem.name || '-'}</p>
+            <p><b>Тема:</b> {currentItem.name || '-'}</p>
             <p><b>Статус:</b> {currentItem.status || '-'}</p>
+            <p><b>Температура:</b> {currentItem.temperature ?? '-'}</p>
             <p>
               <b>Исследователь:</b>{' '}
               {currentItem.researcher?.username || currentItem.researcher?.login || '-'}
             </p>
             <p>
-              <b>Создана:</b>{' '}
-              {currentItem.datecreate
-                ? new Date(currentItem.datecreate).toLocaleString()
-                : '-'}
+              <b>Создана:</b> {formatDateTimeRu(currentItem.datecreate)}
             </p>
           </div>
         )}
@@ -277,7 +331,7 @@ export const MethaneApplicationPage: FC = () => {
                     <td>{item.price}</td>
                     <td>
                       {editableDraft ? (
-                        <div className="qty-controls">
+                        <div className="qty-controls d-flex gap-2 align-items-center">
                           <Button
                             variant="outline-secondary"
                             size="sm"
@@ -312,13 +366,22 @@ export const MethaneApplicationPage: FC = () => {
 
                     {editableDraft && (
                       <td>
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          onClick={() => handleRemove(item.id)}
-                        >
-                          Удалить
-                        </Button>
+                        <div className="d-flex gap-2 flex-wrap">
+                          <Button
+                            variant="outline-success"
+                            size="sm"
+                            onClick={() => handleSaveVolume(item.id, item.count)}
+                          >
+                            Сохранить количество
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => handleRemove(item.id)}
+                          >
+                            Удалить
+                          </Button>
+                        </div>
                       </td>
                     )}
                   </tr>
@@ -334,15 +397,7 @@ export const MethaneApplicationPage: FC = () => {
         </div>
 
         {editableDraft && (
-          <div className="methane-actions">
-            <Button
-              variant="outline-primary"
-              onClick={handleSaveDraft}
-              disabled={!draftState.app_id || displayReagents.length === 0}
-            >
-              Сохранить черновик
-            </Button>
-
+          <div className="methane-actions d-flex gap-2 flex-wrap">
             <Button
               variant="success"
               onClick={handleSubmitApplication}

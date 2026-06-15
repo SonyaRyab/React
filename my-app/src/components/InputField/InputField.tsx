@@ -7,30 +7,28 @@ import { AppDispatch, RootState } from '../../store';
 import { getReagentsList, setSearchValue } from '../../slices/reagentsSlice';
 
 interface Props {
-    value: string;
-    loading?: boolean;
+  value: string;
+  loading?: boolean;
 }
 
 const InputField: FC<Props> = ({ value, loading }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const app_id = useSelector((state: RootState) => state.methaneApplicationDraft.app_id);
+  const count = useSelector((state: RootState) => state.methaneApplicationDraft.count);
+  const navigate = useNavigate();
 
-    const dispatch = useDispatch<AppDispatch>();
-    const isAuthenticated = useSelector((state: RootState) => state.user.isAuthenticated);
-    const app_id = useSelector((state: RootState) => state.methaneApplicationDraft.app_id);
-    const count = useSelector((state: RootState) => state.methaneApplicationDraft.count);
+  const hasDraftItems = Boolean(app_id) && count > 0;
 
-    const navigate = useNavigate();
+  const handleClick = () => {
+    if (!hasDraftItems) return;
+    navigate(`${ROUTES.METHANE_APPLICATION}/${app_id}`);
+  };
 
-    // Событие нажатия на иконку "корзины"
-    const handleClick = (app_id: number | null) => {
-        navigate(`${ROUTES.METHANE_APPLICATION}/${app_id}`);
-    };
-
-    return (
+  return (
     <div className="search-bar">
       <Row>
         <Col xs={7} sm={7} md={7}>
           <div className="search-input">
-            {/* <img src={searchImg} alt="Search Icon" className="search-icon" /> */}
             <input
               type="text"
               placeholder="Поиск"
@@ -54,11 +52,11 @@ const InputField: FC<Props> = ({ value, loading }) => {
         <Col xs={2} sm={2} md={2}>
           <Button
             className="btn-favorites"
-            onClick={() => handleClick(app_id ? app_id : NaN)}
-            disabled={!isAuthenticated || !app_id}
+            onClick={handleClick}
+            disabled={!hasDraftItems}
+            title={!hasDraftItems ? 'Корзина пуста' : 'Открыть заявку'}
           >
-            {/* <img src={favoriteImg} alt="Избранное" /> */}
-            {!isAuthenticated || !app_id ? null : (
+            {hasDraftItems && (
               <span className="badge rounded-pill position-absolute">
                 {count}
               </span>

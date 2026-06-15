@@ -328,7 +328,7 @@ export class Api<
       id: number,
       input: {
         reagent_id: number;
-        quantity: number;
+        volume: number;
       },
       params: RequestParams = {},
     ) =>
@@ -346,7 +346,7 @@ export class Api<
       id: number,
       reagentId: number,
       input: {
-        quantity: number;
+        volume: number;
       },
       params: RequestParams = {},
     ) =>
