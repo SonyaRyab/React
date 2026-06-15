@@ -10,7 +10,7 @@ import {
   setPollingEnabled,
 } from '../../slices/applicationsSlice';
 import LoadingOverlay from '../../components/LoadingOverlay';
-import { formatDateTimeRu } from '../../utils/format';
+import { formatDateTimeRu, formatDateRuInput } from '../../utils/format';
 
 const ModeratorApplicationsPage = () => {
   const dispatch = useDispatch<AppDispatch>();
