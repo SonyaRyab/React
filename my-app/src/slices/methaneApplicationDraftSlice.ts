@@ -27,7 +27,7 @@ interface MethaneApplicationState {
 
 interface ServerMethaneReagent {
   volume?: number;
-  methaneyield?: number;
+  // methaneyield?: number;
   reagent?: Reagent | null;
 }
 
@@ -38,6 +38,7 @@ interface ServerMethane {
   temperature?: number;
   comment?: string;
   methane_yield?: number;
+  methaneyield?: number;
   reagents?: ServerMethaneReagent[];
 }
 
@@ -85,6 +86,8 @@ const applyServerMethaneToState = (
     volume:
       payload.methane_yield !== undefined && payload.methane_yield !== null
         ? String(payload.methane_yield)
+        : payload.methaneyield !== undefined && payload.methaneyield !== null
+        ? String(payload.methaneyield)
         : '1',
   };
   state.isDraft = (payload.status ?? 'draft') === 'draft';
@@ -93,7 +96,6 @@ const applyServerMethaneToState = (
 
 const ensureDraft = async (state: RootState): Promise<number> => {
   let appId = state.methaneApplicationDraft.app_id;
-
   if (appId) return appId;
 
   try {
@@ -124,16 +126,16 @@ export const getMethaneApplication = createAsyncThunk<
 
 export const addReagentToMethaneApplication = createAsyncThunk<
   ServerMethane,
-  { reagentId: number; count: number },
+  { reagent_id: number; count: number },
   { rejectValue: string; state: RootState }
 >(
   'methaneApplicationDraft/addReagent',
-  async ({ reagentId, count }, { getState, rejectWithValue }) => {
+  async ({ reagent_id, count }, { getState, rejectWithValue }) => {
     try {
       const appId = await ensureDraft(getState());
 
       await api.api.methanesReagentsCreate(appId, {
-        reagent_id: reagentId,
+        reagent_id: reagent_id,
         volume: count,
       });
 
@@ -145,6 +147,84 @@ export const addReagentToMethaneApplication = createAsyncThunk<
           ? error?.response?.data?.message || 'Ошибка 400 при добавлении в заявку'
           : getErrorMessage(error)
       );
+    }
+  }
+);
+
+export const saveMethaneApplicationForm = createAsyncThunk<
+  ServerMethane,
+  void,
+  { rejectValue: string; state: RootState }
+>(
+  'methaneApplicationDraft/saveForm',
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const state = getState().methaneApplicationDraft;
+      const draftId = await ensureDraft(getState());
+
+      await api.api.methanesFormUpdate(draftId, {
+        name: state.methaneData.topic ?? '',
+        temperature: Number(state.methaneData.reagenttemperature ?? 0),
+        methane_yield: Number(state.methaneData.volume ?? 0),
+      });
+
+      const response = await api.api.methanesDetail(draftId);
+      return response.data as ServerMethane;
+    } catch (error: any) {
+      return rejectWithValue(getErrorMessage(error));
+    }
+  }
+);
+
+
+export const saveReagentVolume = createAsyncThunk<
+  ServerMethane,
+  { reagent_id: number; count: number },
+  { rejectValue: string; state: RootState }
+>(
+  'methaneApplicationDraft/saveReagentVolume',
+  async ({ reagent_id, count }, { getState, rejectWithValue }) => {
+    try {
+      const appId = getState().methaneApplicationDraft.app_id;
+      if (!appId) {
+        return rejectWithValue('Черновик не найден');
+      }
+
+      await api.request({
+        path: `/api/methanes/${appId}/reagents/${reagent_id}`,
+        method: 'PUT',
+        body: { volume: count },
+        type: 'application/json',
+        secure: true,
+        format: 'json',
+      });
+
+      const response = await api.api.methanesDetail(appId);
+      return response.data as ServerMethane;
+    } catch (error: any) {
+      return rejectWithValue(getErrorMessage(error));
+    }
+  }
+);
+
+export const removeReagentFromMethaneApplication = createAsyncThunk<
+  ServerMethane,
+  number,
+  { rejectValue: string; state: RootState }
+>(
+  'methaneApplication/removeReagentFromMethaneApplication',
+  async (reagent_id, { getState, rejectWithValue }) => {
+    try {
+      const appId = getState().methaneApplicationDraft.app_id;
+      if (!appId) {
+        return rejectWithValue('Черновик не найден');
+      }
+
+      await api.api.methanesReagentsDelete(appId, reagent_id);
+      const response = await api.api.methanesDetail(appId);
+      return response.data as ServerMethane;
+    } catch (error: any) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -165,101 +245,6 @@ export const saveMethaneTemperature = createAsyncThunk<
       });
 
       const response = await api.api.methanesDetail(draftId);
-      return response.data as ServerMethane;
-    } catch (error: any) {
-      return rejectWithValue(getErrorMessage(error));
-    }
-  }
-);
-
-export const saveMethaneVolume = createAsyncThunk<
-  ServerMethane,
-  { appId?: number; volume: string },
-  { rejectValue: string; state: RootState }
->(
-  'methaneApplicationDraft/saveVolume',
-  async ({ appId, volume }, { getState, rejectWithValue }) => {
-    try {
-      const draftId = appId || (await ensureDraft(getState()));
-      await api.api.methanesFormUpdate(draftId, {
-        name: getState().methaneApplicationDraft.methaneData.topic ?? '',
-        temperature: Number(getState().methaneApplicationDraft.methaneData.reagenttemperature || 0),
-        methane_yield: Number(volume || 0),
-      });
-
-      const response = await api.api.methanesDetail(draftId);
-      return response.data as ServerMethane;
-    } catch (error: any) {
-      return rejectWithValue(getErrorMessage(error));
-    }
-  }
-);
-
-export const saveMethaneApplicationForm = createAsyncThunk<
-  ServerMethane,
-  void,
-  { rejectValue: string; state: RootState }
->(
-  'methaneApplicationDraft/saveForm',
-  async (_, { getState, rejectWithValue }) => {
-    try {
-      const state = getState().methaneApplicationDraft;
-      const draftId = await ensureDraft(getState());
-
-      await api.api.methanesFormUpdate(draftId, {
-        name: state.methaneData.topic ?? '',
-        temperature: Number(state.methaneData.reagenttemperature || 0),
-        methane_yield: Number(state.methaneData.volume || 0),
-      });
-
-      const response = await api.api.methanesDetail(draftId);
-      return response.data as ServerMethane;
-    } catch (error: any) {
-      return rejectWithValue(getErrorMessage(error));
-    }
-  }
-);
-
-export const saveReagentVolume = createAsyncThunk<
-  ServerMethane,
-  { reagentId: number; count: number },
-  { rejectValue: string; state: RootState }
->(
-  'methaneApplicationDraft/saveReagentVolume',
-  async ({ reagentId, count }, { getState, rejectWithValue }) => {
-    try {
-      const appId = getState().methaneApplicationDraft.app_id;
-      if (!appId) {
-        return rejectWithValue('Нет активной заявки');
-      }
-
-      await api.api.methanesReagentsUpdate(appId, reagentId, {
-        volume: count,
-      });
-
-      const response = await api.api.methanesDetail(appId);
-      return response.data as ServerMethane;
-    } catch (error: any) {
-      return rejectWithValue(getErrorMessage(error));
-    }
-  }
-);
-
-export const removeReagentFromMethaneApplication = createAsyncThunk<
-  ServerMethane,
-  number,
-  { rejectValue: string; state: RootState }
->(
-  'methaneApplication/removeReagentFromMethaneApplication',
-  async (reagentId, { getState, rejectWithValue }) => {
-    try {
-      const appId = getState().methaneApplicationDraft.app_id;
-      if (!appId) {
-        return rejectWithValue('Нет активной заявки');
-      }
-
-      await api.api.methanesReagentsDelete(appId, reagentId);
-      const response = await api.api.methanesDetail(appId);
       return response.data as ServerMethane;
     } catch (error: any) {
       return rejectWithValue(getErrorMessage(error));
@@ -295,32 +280,23 @@ const methaneApplicationDraftSlice = createSlice({
   name: 'methaneApplicationDraft',
   initialState,
   reducers: {
-    setAppId: (state, action: PayloadAction<number | undefined>) => {
-      state.app_id = action.payload;
-    },
-    setCount: (state, action: PayloadAction<number>) => {
-      state.count = action.payload;
-    },
-    setError: (state, action: PayloadAction<string | null>) => {
-      state.error = action.payload;
-    },
-    setMethaneData: (state, action: PayloadAction<Partial<MethaneData>>) => {
+    setMethaneData(state, action: PayloadAction<Partial<MethaneData>>) {
       state.methaneData = { ...state.methaneData, ...action.payload };
     },
-    updateReagentCountLocal: (
+    updateReagentCountLocal(
       state,
-      action: PayloadAction<{ reagentId: number; count: number }>
-    ) => {
+      action: PayloadAction<{ reagent_id: number; count: number }>
+    ) {
       const item = state.reagents.find(
-        (r) => r.reagent.id === action.payload.reagentId
+        (r) => r.reagent.id === action.payload.reagent_id
       );
       if (item) item.count = action.payload.count;
       state.count = state.reagents.reduce((sum, r) => sum + r.count, 0);
     },
-    loadDraftFromServer: (state, action: PayloadAction<ServerMethane>) => {
+    loadDraftFromServer(state, action: PayloadAction<ServerMethane>) {
       applyServerMethaneToState(state, action.payload);
     },
-    resetDraft: (state) => {
+    resetDraft(state) {
       state.app_id = undefined;
       state.count = 0;
       state.reagents = [];
@@ -332,27 +308,28 @@ const methaneApplicationDraftSlice = createSlice({
       };
       state.error = null;
       state.isDraft = true;
+      state.loading = false;
     },
   },
-  extraReducers: (builder) =>
+  extraReducers: (builder) => {
     builder
+      .addCase(getMethaneApplication.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(getMethaneApplication.fulfilled, (state, action) => {
+        state.loading = false;
         applyServerMethaneToState(state, action.payload);
       })
       .addCase(getMethaneApplication.rejected, (state, action) => {
+        state.loading = false;
         state.error = action.payload ?? 'Failed to load draft';
       })
       .addCase(addReagentToMethaneApplication.fulfilled, (state, action) => {
         applyServerMethaneToState(state, action.payload);
       })
       .addCase(addReagentToMethaneApplication.rejected, (state, action) => {
-        state.error = action.payload ?? 'Не удалось добавить реагент';
-      })
-      .addCase(saveMethaneTemperature.fulfilled, (state, action) => {
-        applyServerMethaneToState(state, action.payload);
-      })
-      .addCase(saveMethaneVolume.fulfilled, (state, action) => {
-        applyServerMethaneToState(state, action.payload);
+        state.error = action.payload ?? 'Ошибка добавления услуги';
       })
       .addCase(saveMethaneApplicationForm.fulfilled, (state, action) => {
         applyServerMethaneToState(state, action.payload);
@@ -366,13 +343,11 @@ const methaneApplicationDraftSlice = createSlice({
       .addCase(clearMethaneApplicationOnServer.fulfilled, (state) => {
         state.reagents = [];
         state.count = 0;
-      }),
+      });
+  },
 });
 
 export const {
-  setAppId,
-  setCount,
-  setError,
   setMethaneData,
   updateReagentCountLocal,
   loadDraftFromServer,

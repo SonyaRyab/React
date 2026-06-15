@@ -66,11 +66,11 @@ export const ReagentsPage: FC = () => {
     navigate(`${ROUTES.METHANE_APPLICATION}/${appid}`);
   };
 
-  const handleAddToDraft = async (reagentId: number) => {
+  const handleAddToDraft = async (reagent_id: number) => {
     setPageError('');
     const result = await dispatch(
       addReagentToMethaneApplication({
-        reagentId,
+        reagent_id,
         count: 1,
       })
     );

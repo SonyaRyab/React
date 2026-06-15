@@ -344,14 +344,14 @@ export class Api<
 
     methanesReagentsUpdate: (
       id: number,
-      reagentId: number,
+      reagent_id: number,
       input: {
         volume: number;
       },
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
-        path: `/api/methanes/${id}/reagents/${reagentId}`,
+        path: `/api/methanes/${id}/reagents/${reagent_id}`,
         method: "PUT",
         body: input,
         type: ContentType.Json,
@@ -362,11 +362,11 @@ export class Api<
 
     methanesReagentsDelete: (
       id: number,
-      reagentId: number,
+      reagent_id: number,
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
-        path: `/api/methanes/${id}/reagents/${reagentId}`,
+        path: `/api/methanes/${id}/reagents/${reagent_id}`,
         method: "DELETE",
         secure: true,
         format: "json",

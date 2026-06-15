@@ -146,7 +146,16 @@ export const fetchAllApplications = createAsyncThunk<
     const state = getState();
     const { status, createdFrom, createdTo } = state.applications.filters as ApplicationsFilters;
 
-    const response = await api.api.methanesList?.();
+    const response = await api.request({
+        path: '/api/methanes/all',
+        method: 'GET',
+        query: {
+          page: 1,
+          limit: 100,
+        },
+        secure: true,
+        format: 'json',
+      });
     let items = normalizeArray(response?.data);
 
     if (status && status !== 'today') {

@@ -39,9 +39,11 @@ const ModeratorApplicationsPage = () => {
     return items.filter((item) => {
       const researcherLogin = item.researcher?.login?.toLowerCase() ?? '';
       const researcherName = item.researcher?.username?.toLowerCase() ?? '';
+      const topic = (item.topic || item.name || '').toLowerCase();
       return (
         researcherLogin.includes(creator) ||
-        researcherName.includes(creator)
+        researcherName.includes(creator) ||
+        topic.includes(creator)
       );
     });
   }, [items, filters.creator]);
@@ -70,15 +72,15 @@ const ModeratorApplicationsPage = () => {
             >
               <option value="today">За сегодня</option>
               <option value="">Все</option>
-              <option value="draft">draft</option>
-              <option value="formed">formed</option>
-              <option value="completed">completed</option>
-              <option value="rejected">rejected</option>
+              <option value="draft">Черновики</option>
+              <option value="formed">Сформированные</option>
+              <option value="completed">Завершенные</option>
+              <option value="rejected">Отклоненные</option>
             </Form.Select>
           </Form.Group>
 
           <Form.Group>
-            <Form.Label>Дата с</Form.Label>
+            <Form.Label>Дата начала</Form.Label>
             <Form.Control
               type="date"
               value={filters.createdFrom}
@@ -86,10 +88,11 @@ const ModeratorApplicationsPage = () => {
                 dispatch(setApplicationsFilter({ key: 'createdFrom', value: e.target.value }))
               }
             />
+            <small>{formatDateRuInput(filters.createdFrom)}</small>
           </Form.Group>
 
           <Form.Group>
-            <Form.Label>Дата по</Form.Label>
+            <Form.Label>Дата окончания</Form.Label>
             <Form.Control
               type="date"
               value={filters.createdTo}
@@ -97,13 +100,14 @@ const ModeratorApplicationsPage = () => {
                 dispatch(setApplicationsFilter({ key: 'createdTo', value: e.target.value }))
               }
             />
+            <small>{formatDateRuInput(filters.createdTo)}</small>
           </Form.Group>
 
           <Form.Group>
             <Form.Label>Создатель</Form.Label>
             <Form.Control
               type="text"
-              placeholder="логин или имя"
+              placeholder="Введите логин или имя"
               value={filters.creator}
               onChange={(e) =>
                 dispatch(setApplicationsFilter({ key: 'creator', value: e.target.value }))
@@ -133,9 +137,9 @@ const ModeratorApplicationsPage = () => {
                 <th>ID</th>
                 <th>Тема</th>
                 <th>Статус</th>
-                <th>Исследователь</th>
+                <th>Пользователь</th>
                 <th>Температура</th>
-                <th>Результат / объемы</th>
+                <th>Результат (объем)</th>
                 <th>Дата создания</th>
                 <th>Дата обновления</th>
                 <th>Действия</th>

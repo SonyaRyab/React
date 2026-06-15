@@ -124,19 +124,19 @@ export const MethaneApplicationPage: FC = () => {
     dispatch(setMethaneData({ [name]: value }));
   };
 
-  const handleDecrease = (reagentId: number, currentCount: number) => {
+  const handleDecrease = (reagent_id: number, currentCount: number) => {
     if (currentCount <= 1) return;
-    dispatch(updateReagentCountLocal({ reagentId, count: currentCount - 1 }));
+    dispatch(updateReagentCountLocal({ reagent_id, count: currentCount - 1 }));
   };
 
-  const handleIncrease = (reagentId: number, currentCount: number) => {
-    dispatch(updateReagentCountLocal({ reagentId, count: currentCount + 1 }));
+  const handleIncrease = (reagent_id: number, currentCount: number) => {
+    dispatch(updateReagentCountLocal({ reagent_id, count: currentCount + 1 }));
   };
 
-  const handleCountChange = (reagentId: number, value: string) => {
+  const handleCountChange = (reagent_id: number, value: string) => {
     const nextCount = Number(value);
     if (Number.isNaN(nextCount) || nextCount < 1) return;
-    dispatch(updateReagentCountLocal({ reagentId, count: nextCount }));
+    dispatch(updateReagentCountLocal({ reagent_id, count: nextCount }));
   };
 
   const handleSaveTemperature = async () => {
@@ -152,19 +152,6 @@ export const MethaneApplicationPage: FC = () => {
     }
   };
 
-  const handleSaveVolume = async () => {
-    if (!draftState.app_id) return;
-    const result = await dispatch(
-      saveMethaneVolume({
-        appId: draftState.app_id,
-        volume: methaneData.volume ?? '0',
-      })
-    );
-    if (saveMethaneVolume.fulfilled.match(result)) {
-      setSuccessText('Объемы сохранены');
-    }
-  };
-
   const handleSaveDraftForm = async () => {
     const result = await dispatch(saveMethaneApplicationForm());
     if (saveMethaneApplicationForm.fulfilled.match(result)) {
@@ -172,15 +159,22 @@ export const MethaneApplicationPage: FC = () => {
     }
   };
 
-  const handleSaveVolume = async (reagentId: number, count: number) => {
-    const result = await dispatch(saveReagentVolume({ reagentId, count }));
+  const handleSaveReagentCount = async (reagent_id: number, count: number) => {
+    const result = await dispatch(saveReagentVolume({ reagent_id, count }));
     if (saveReagentVolume.fulfilled.match(result)) {
-      setSuccessText(`Количество для реагента #${reagentId} сохранено`);
+      setSuccessText(`Количество услуги #${reagent_id} сохранено`);
     }
   };
 
-  const handleRemove = async (reagentId: number) => {
-    await dispatch(removeReagentFromMethaneApplication(reagentId));
+  const handleSaveVolume = async (reagent_id: number, count: number) => {
+    const result = await dispatch(saveReagentVolume({ reagent_id, count }));
+    if (saveReagentVolume.fulfilled.match(result)) {
+      setSuccessText(`Количество для реагента #${reagent_id} сохранено`);
+    }
+  };
+
+  const handleRemove = async (reagent_id: number) => {
+    await dispatch(removeReagentFromMethaneApplication(reagent_id));
   };
 
   const handleClearDraft = async () => {
@@ -375,11 +369,44 @@ export const MethaneApplicationPage: FC = () => {
                             Сохранить количество
                           </Button>
                           <Button
+                            variant="outline-success"
+                            size="sm"
+                            onClick={() => handleSaveReagentCount(item.id, item.count)}
+                          >
+                            Изменить кол-во услуги
+                          </Button>
+                          <Button
                             variant="danger"
                             size="sm"
                             onClick={() => handleRemove(item.id)}
                           >
                             Удалить
+                          </Button>
+                        </div>
+
+                        <div className="methane-actions d-flex gap-2 flex-wrap">
+                          <Button
+                            variant="primary"
+                            onClick={handleSaveDraftForm}
+                            disabled={!draftState.app_id}
+                          >
+                            Сохранить поле заявки
+                          </Button>
+
+                          <Button
+                            variant="success"
+                            onClick={handleSubmitApplication}
+                            disabled={!draftState.app_id || displayReagents.length === 0}
+                          >
+                            Оформить заявку
+                          </Button>
+
+                          <Button
+                            variant="outline-danger"
+                            onClick={handleClearDraft}
+                            disabled={!draftState.app_id}
+                          >
+                            Удалить заявку
                           </Button>
                         </div>
                       </td>

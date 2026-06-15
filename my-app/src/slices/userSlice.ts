@@ -9,6 +9,7 @@ type UserRole = 'researcher' | 'professor' | 'admin' | null;
 interface JwtPayload {
   role?: UserRole;
   exp?: number;
+  login?: string;
 }
 
 interface UserState {
@@ -33,12 +34,14 @@ const clearStoredAuth = () => {
 };
 
 const getStoredAuth = () => {
-  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+  const token =
+    localStorage.getItem('token') || sessionStorage.getItem('token');
   const username =
-    sessionStorage.getItem('username') || localStorage.getItem('username');
-  const login = sessionStorage.getItem('login') || localStorage.getItem('login');
+    localStorage.getItem('username') || sessionStorage.getItem('username');
+  const login =
+    localStorage.getItem('login') || sessionStorage.getItem('login');
   const role =
-    (sessionStorage.getItem('role') || localStorage.getItem('role')) as UserRole;
+    (localStorage.getItem('role') || sessionStorage.getItem('role')) as UserRole;
 
   return { token, username, login, role };
 };
@@ -46,10 +49,10 @@ const getStoredAuth = () => {
 const stored = getStoredAuth();
 
 const initialState: UserState = {
-  username: stored.username || null,
-  login: stored.login || null,
-  role: stored.role || null,
-  token: stored.token || null,
+  username: stored.username ?? null,
+  login: stored.login ?? null,
+  role: stored.role ?? null,
+  token: stored.token ?? null,
   isAuthenticated: Boolean(stored.token),
   error: null,
 };
@@ -121,19 +124,19 @@ const userSlice = createSlice({
       })
       .addCase(loginUserAsync.fulfilled, (state, action) => {
         const token = action.payload.accessToken;
-        const decoded = jwtDecode<JwtPayload>(token);
+        const decoded = token ? jwtDecode<JwtPayload>(token) : {};
 
         state.username = action.payload.username;
         state.login = action.payload.login;
         state.role = decoded.role ?? 'researcher';
         state.token = token;
-        state.isAuthenticated = true;
+        state.isAuthenticated = Boolean(token);
         state.error = null;
 
-        sessionStorage.setItem('token', token);
-        sessionStorage.setItem('username', action.payload.username);
-        sessionStorage.setItem('login', action.payload.login);
-        sessionStorage.setItem('role', decoded.role ?? 'researcher');
+        localStorage.setItem('token', token);
+        localStorage.setItem('username', action.payload.username);
+        localStorage.setItem('login', action.payload.login);
+        localStorage.setItem('role', decoded.role ?? 'researcher');
       })
       .addCase(loginUserAsync.rejected, (state, action) => {
         state.username = null;
@@ -144,12 +147,12 @@ const userSlice = createSlice({
         state.error = action.payload ?? 'Login failed';
         clearStoredAuth();
       })
-      .addCase(registerUserAsync.pending, (state) => {
-        state.error = null;
-      })
-      .addCase(registerUserAsync.fulfilled, (state) => {
-        state.error = null;
-      })
+      // .addCase(registerUserAsync.pending, (state) => {
+      //   state.error = null;
+      // })
+      // .addCase(registerUserAsync.fulfilled, (state) => {
+      //   state.error = null;
+      // })
       .addCase(registerUserAsync.rejected, (state, action) => {
         state.error = action.payload ?? 'Register failed';
       })
@@ -162,9 +165,9 @@ const userSlice = createSlice({
         state.error = null;
         clearStoredAuth();
       })
-      .addCase(logoutUserAsync.rejected, (state, action) => {
-        state.error = action.payload ?? 'Logout failed';
-      }),
+      // .addCase(logoutUserAsync.rejected, (state, action) => {
+      //   state.error = action.payload ?? 'Logout failed';
+      // }),
 });
 
 export default userSlice.reducer;
