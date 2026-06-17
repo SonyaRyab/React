@@ -50,7 +50,7 @@ const Header = () => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
 
         <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="me-auto">
+          <Nav className="align-items-center gap-2 ms-auto">
             <Nav.Link as={Link} to={ROUTES.HOME}>
               Главная
             </Nav.Link>
@@ -81,15 +81,15 @@ const Header = () => {
                 Заявка {count > 0 && <Badge bg="danger">{count}</Badge>}
               </Nav.Link>
             )} */}
-          </Nav>
-
+          
           {isAuthenticated && (
-            <Nav.Link as={Link} to={ROUTES.FEED}>
+            <Nav.Link as={Link} to={ROUTES.FEED} className="feed-link">
               Лента
             </Nav.Link>
           )}
+          </Nav>
 
-          <Nav className="align-items-center gap-2">
+          <Nav className="align-items-center gap-2 ms-auto">
             {isAuthenticated && username && (
               <Navbar.Text className="app-navbar-username">{username}</Navbar.Text>
             )}
