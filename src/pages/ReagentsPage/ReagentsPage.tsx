@@ -181,7 +181,7 @@ export const ReagentsPage: FC = () => {
     </> */}
     <Header />
       <div className="container">
-        <BreadCrumbs crumbs={[{ label: ROUTE_LABELS.REAGENTS }]} />
+        {/* <BreadCrumbs crumbs={[{ label: ROUTE_LABELS.REAGENTS }]} /> */}
 
         <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
           <h1>Услуги</h1>

@@ -6,7 +6,6 @@ export type ApplicationStatus =
   | 'formed'
   | 'completed'
   | 'rejected'
-  | 'today'
   | string;
 
 export interface ApplicationUser {
@@ -29,7 +28,7 @@ export interface ApplicationReagentDetails {
 
 export interface ApplicationReagent {
   id?: number;
-  quantity?: number;
+  volume?: number;
   methaneyield?: number;
   reagent?: ApplicationReagentDetails | null;
 }
@@ -82,9 +81,9 @@ const initialState: ApplicationsState = {
   loading: false,
   error: null,
   filters: {
-    status: 'today',
-    createdFrom: todayValue,
-    createdTo: todayValue,
+    status: '',
+    createdFrom: '',
+    createdTo: '',
     creator: '',
   },
   pollingEnabled: true,
@@ -160,14 +159,9 @@ export const fetchAllApplications = createAsyncThunk<
     const response = await api.api.methanesList?.();
     let items = normalizeArray(response?.data);
 
-    if (status && status !== 'today') {
+    if (status) {
       items = items.filter((item) => item.status === status);
     }
-
-    if (status === 'today') {
-      items = items.filter((item) => isInToday(item.datecreate));
-    }
-
     if (createdFrom) {
       const from = new Date(createdFrom);
       from.setHours(0, 0, 0, 0);
@@ -252,9 +246,9 @@ const applicationsSlice = createSlice({
     },
     resetApplicationsFilters: (state) => {
       state.filters = {
-        status: 'today',
-        createdFrom: todayValue,
-        createdTo: todayValue,
+        status: '',
+        createdFrom: '',
+        createdTo: '',
         creator: '',
       };
       state.currentPage = 1;

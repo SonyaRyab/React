@@ -27,7 +27,7 @@ interface MethaneApplicationState {
 }
 
 interface ServerMethaneReagent {
-  quantity?: number;
+  volume?: number;
   methaneyield?: number;
   reagent?: Reagent | null;
 }
@@ -72,7 +72,7 @@ const applyServerMethaneToState = (
     .filter((item) => item.reagent?.id)
     .map((item) => ({
       reagent: item.reagent as Reagent,
-      count: Number(item.quantity ?? 1),
+      count: Number(item.volume ?? 1),
     }));
 
   state.count = state.reagents.reduce((sum, item) => sum + item.count, 0);
@@ -142,7 +142,7 @@ export const addReagentToMethaneApplication = createAsyncThunk<
       }
 
       if (!Number.isFinite(numericCount) || numericCount <= 0) {
-        return rejectWithValue(`Некорректное quantity: ${String(count)}`);
+        return rejectWithValue(`Некорректный объем: ${String(count)}`);
       }
 
       let appId = getState().methaneApplicationDraft.appid;
@@ -161,8 +161,8 @@ export const addReagentToMethaneApplication = createAsyncThunk<
         sessionStorage.getItem("token") || localStorage.getItem("token");
 
       const payload = {
-        reagentid: numericReagentId,
-        quantity: numericCount,
+        reagent_id: numericReagentId,
+        volume: numericCount,
       };
 
       console.log("ADD REAGENT payload:", payload);
@@ -296,15 +296,15 @@ export const saveReagentQuantity = createAsyncThunk<
       }
 
       if (!Number.isFinite(numericCount) || numericCount <= 0) {
-        return rejectWithValue(`Некорректное quantity: ${String(count)}`);
+        return rejectWithValue(`Некорректный объем: ${String(count)}`);
       }
 
       const token =
         sessionStorage.getItem("token") || localStorage.getItem("token");
 
       const payload = {
-        reagentid: numericReagentId,
-        quantity: numericCount,
+        reagent_id: numericReagentId,
+        volume: numericCount,
       };
 
       console.log("UPDATE REAGENT payload:", payload);

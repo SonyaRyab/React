@@ -18,9 +18,9 @@ export const BreadCrumbs: FC<BreadCrumbsProps> = (props) => {
 
   return (
     <ul className="breadcrumbs">
-      <li>
+      {/* <li>
         <Link to={ROUTES.HOME}>Главная</Link>
-      </li>
+      </li> */}
       {!!crumbs.length &&
         crumbs.map((crumb, index) => (
           <React.Fragment key={index}>

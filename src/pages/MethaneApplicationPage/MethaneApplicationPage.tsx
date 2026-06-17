@@ -96,7 +96,7 @@ export const MethaneApplicationPage: FC = () => {
       name: item.reagent?.name ?? `Реагент #${index + 1}`,
       formula: item.reagent?.formula ?? '-',
       price: Number(item.reagent?.price ?? 0),
-      count: Number(item.quantity ?? 0),
+      count: Number(item.volume ?? 0),
     }));
   }, [currentItem]);
 

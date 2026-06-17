@@ -95,7 +95,6 @@ const ModeratorApplicationsPage = () => {
                 )
               }
             >
-              <option value="today">За сегодня</option>
               <option value="">Все</option>
               <option value="draft">draft</option>
               <option value="formed">formed</option>
@@ -188,7 +187,7 @@ const ModeratorApplicationsPage = () => {
                 {filteredItems.map((item) => (
                   <tr key={item.id}>
                     <td>{item.id}</td>
-                    <td>{item.topic || item.name || 'Без темы'}</td>
+                    <td>{item.name || 'Без темы'}</td>
                     <td>{item.status || '-'}</td>
                     <td>
                       {item.researcher?.username ||
@@ -198,7 +197,7 @@ const ModeratorApplicationsPage = () => {
                     <td>{item.temperature ?? '-'}</td>
                     <td>{item.methaneyield ?? '-'}</td>
                     <td>{formatDateTimeRu(item.datecreate)}</td>
-                    <td>{formatDateTimeRu(item.dateupdate)}</td>
+                    <td>{formatDateTimeRu(item.datefinish ?? item.date_form ?? item.datecreate)}</td>
                     <td className="d-flex gap-2 flex-wrap">
                       <Button
                         size="sm"

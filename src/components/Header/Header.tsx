@@ -51,9 +51,9 @@ const Header = () => {
 
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="align-items-center gap-2 ms-auto">
-            <Nav.Link as={Link} to={ROUTES.HOME}>
+            {/* <Nav.Link as={Link} to={ROUTES.HOME}>
               Главная
-            </Nav.Link>
+            </Nav.Link> */}
 
             <Nav.Link as={Link} to={ROUTES.REAGENTS}>
               Реагенты

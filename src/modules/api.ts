@@ -155,7 +155,7 @@ export async function getCartIcon(): Promise<{ count: number }> {
     const result = await response.json();
     const count = Array.isArray(result?.reagents)
       ? result.reagents.reduce(
-          (sum: number, item: any) => sum + Number(item.quantity ?? 0),
+          (sum: number, item: any) => sum + Number(item.volume ?? 0),
           0
         )
       : 0;
