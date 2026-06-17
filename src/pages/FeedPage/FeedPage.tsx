@@ -6,28 +6,27 @@ import Header from "../../components/Header/Header";
 import { getReagentById, getFeed } from "../../modules/api";
 import type { Reagent } from "../../modules/types";
 import { getMediaUrl } from "../../modules/media";
-import { ROUTES } from "../../Routes";
+import { buildReagentRoute, ROUTES } from "../../Routes";
 
 export const FeedPage: React.FC = () => {
   const navigate = useNavigate();
-
   const [feedIds, setFeedIds] = useState<number[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentReagent, setCurrentReagent] = useState<Reagent | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState('');
 
   // загружаем id ленты
   useEffect(() => {
     const loadFeed = async () => {
       try {
         setLoading(true);
-        setError("");
+        setError('');
         const ids = await getFeed();
         setFeedIds(ids);
         setCurrentIndex(0);
       } catch (e: any) {
-        setError(e.message || "Не удалось загрузить ленту");
+        setError(e.message);
       } finally {
         setLoading(false);
       }
@@ -45,7 +44,7 @@ export const FeedPage: React.FC = () => {
 
       try {
         setLoading(true);
-        setError("");
+        setError('');
         const data = await getReagentById(String(id));
         if (data) {
           setCurrentReagent(data);
@@ -53,7 +52,7 @@ export const FeedPage: React.FC = () => {
           setCurrentReagent(null);
         }
       } catch (e: any) {
-        setError(e.message || "Не удалось загрузить карточку");
+        setError(e.message);
         setCurrentReagent(null);
       } finally {
         setLoading(false);
@@ -69,9 +68,9 @@ export const FeedPage: React.FC = () => {
     }
   };
 
-  const handleBackToList = () => {
-    navigate(ROUTES.REAGENTS);
-  };
+  // const handleBackToList = () => {
+  //   navigate(ROUTES.REAGENTS);
+  // };
 
   const isLast = currentIndex >= feedIds.length - 1;
 
@@ -79,7 +78,7 @@ export const FeedPage: React.FC = () => {
     <>
       <Header />
       <div className="container" style={{ maxWidth: 800, marginTop: 20 }}>
-        <h2 className="mb-3">Лента услуг</h2>
+        <h2 className="mb-3">Лента</h2>
 
         {error && <Alert variant="danger">{error}</Alert>}
 
@@ -90,14 +89,14 @@ export const FeedPage: React.FC = () => {
         )}
 
         {!loading && !currentReagent && !error && (
-          <Alert variant="secondary">Лента пуста.</Alert>
+          <Alert variant="secondary">Лента пока пуста.</Alert>
         )}
 
         {currentReagent && (
           <div>
             <div className="mb-3">
               <strong>
-                Карточка {currentIndex + 1} из {feedIds.length}
+                {currentIndex + 1} / {feedIds.length}
               </strong>
             </div>
 
@@ -106,7 +105,6 @@ export const FeedPage: React.FC = () => {
               <div className="text-muted">{currentReagent.formula}</div>
             </div>
 
-            {/* Видео вместо фото — autoplay, muted, loop */}
             <div className="mb-3">
               <video
                 key={getMediaUrl(currentReagent.video)}
@@ -122,16 +120,17 @@ export const FeedPage: React.FC = () => {
 
             <p>{currentReagent.description}</p>
 
-            <div className="d-flex gap-2 mt-3">
-              <Button variant="secondary" onClick={handleBackToList}>
-                К списку реагентов
+            <div className="d-flex gap-2 mt-3 flex-wrap">
+              <Button variant="secondary" onClick={() => navigate(ROUTES.REAGENTS)}>
+                К списку
               </Button>
-
               <Button
-                variant="primary"
-                onClick={handleNext}
-                disabled={isLast}
+                variant="outline-primary"
+                onClick={() => navigate(buildReagentRoute(currentReagent.id))}
               >
+                Подробнее
+              </Button>
+              <Button variant="primary" onClick={handleNext} disabled={isLast}>
                 Далее
               </Button>
             </div>

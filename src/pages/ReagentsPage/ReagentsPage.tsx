@@ -1,7 +1,7 @@
 import './ReagentsPage.css';
 import type { FC, ChangeEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { Spinner, Button, Alert } from 'react-bootstrap';
+import { Spinner, Button, Alert, Pagination, Form } from 'react-bootstrap';
 import { ReagentCard } from '../../components/ReagentCard/ReagentCard';
 import {
   ROUTES,
@@ -15,7 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import { useReagentSearch } from '../../hooks/useReagentSearch';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
-import { getReagentsList, setSearchValue } from '../../slices/reagentsSlice';
+import { getReagentsList, setCurrentPage, setPageLimit, setSearchValue } from '../../slices/reagentsSlice';
 import { addReagentToMethaneApplication } from '../../slices/methaneApplicationDraftSlice';
 import Header from '../../components/Header/Header';
 
@@ -28,24 +28,21 @@ export const ReagentsPage: FC = () => {
     (state: RootState) => state.methaneApplicationDraft.app_id
   );
 
-  const { searchValue, reagents, loading } = useSelector(
-    (state: RootState) => state.reagents
-  );
-
   const draftItems = useSelector(
     (state: RootState) => state.methaneApplicationDraft.reagents
+  );
+
+  const { searchValue, reagents, loading, page, totalPages, total, limit } = useSelector(
+    (state: RootState) => state.reagents,
   );
 
   const draftCount = draftItems.reduce((sum, item) => sum + item.count, 0);
 
   useEffect(() => {
     dispatch(getReagentsList());
-  }, [dispatch]);
+  }, [dispatch, searchValue, page, limit]);
 
-  const searchSource = useMemo(
-    () => (reagents.length > 0 ? reagents : REAGENTS_MOCK),
-    [reagents]
-  );
+  const searchSource = useMemo(() => (reagents.length > 0 ? reagents : REAGENTS_MOCK), [reagents]);
 
   const {
     items: searchedItems,
@@ -56,9 +53,7 @@ export const ReagentsPage: FC = () => {
     resetSearch,
   } = useReagentSearch(searchSource);
 
-  const visibleItems = imageEmbedding
-    ? searchedItems.filter((item) => item.isVisible)
-    : searchedItems;
+  const visibleItems = imageEmbedding ? searchedItems.filter((item) => item.isVisible) : searchedItems;
 
   const handleImageSearch = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -73,12 +68,7 @@ export const ReagentsPage: FC = () => {
 
   const handleAddToDraft = async (reagentId: number) => {
     setPageError('');
-    const result = await dispatch(
-      addReagentToMethaneApplication({
-        reagentId,
-        count: 1,
-      })
-    );
+    const result = await dispatch(addReagentToMethaneApplication({ reagentId, count: 1 }));
 
     if (addReagentToMethaneApplication.fulfilled.match(result)) {
       const newId = result.payload?.id;
@@ -93,7 +83,7 @@ export const ReagentsPage: FC = () => {
 
   return (
     <>
-      <Header />
+      {/* <Header />
       <div className="container">
         <BreadCrumbs crumbs={[{ label: ROUTE_LABELS.REAGENTS }]} />
 
@@ -187,6 +177,91 @@ export const ReagentsPage: FC = () => {
             />
           ))}
         </div>
+      </div>
+    </> */}
+    <Header />
+      <div className="container">
+        <BreadCrumbs crumbs={[{ label: ROUTE_LABELS.REAGENTS }]} />
+
+        <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+          <h1>Услуги</h1>
+
+          <div className="d-flex gap-2 align-items-center flex-wrap">
+            <Form.Select
+              value={limit}
+              onChange={(e) => dispatch(setPageLimit(Number(e.target.value)))}
+              style={{ width: 160 }}
+            >
+              <option value={12}>12 на странице</option>
+              <option value={24}>24 на странице</option>
+              <option value={48}>48 на странице</option>
+            </Form.Select>
+
+            <Button
+              variant="outline-secondary"
+              onClick={openDraft}
+              disabled={!appid || draftCount === 0}
+            >
+              Черновик ({draftCount})
+            </Button>
+          </div>
+        </div>
+
+        <div className="d-flex gap-2 flex-wrap align-items-center mb-3">
+          <Form.Control
+            value={searchValue}
+            onChange={(e) => dispatch(setSearchValue(e.target.value))}
+            placeholder="Поиск по названию или формуле"
+            style={{ maxWidth: 360 }}
+          />
+          <Button onClick={() => dispatch(getReagentsList())} disabled={loading}>
+            Поиск
+          </Button>
+          <Form.Control
+            type="file"
+            accept="image/*"
+            onChange={handleImageSearch}
+            style={{ maxWidth: 260 }}
+          />
+          {imageEmbedding && (
+            <Button variant="outline-secondary" onClick={resetSearch}>
+              Сбросить поиск по картинке
+            </Button>
+          )}
+        </div>
+
+        {pageError && <Alert variant="danger">{pageError}</Alert>}
+        {!ready && <Alert variant="info">Подготовка эмбеддингов: {Math.round(progress)}%</Alert>}
+        {loading && (
+          <div className="my-4 text-center">
+            <Spinner animation="border" />
+          </div>
+        )}
+        {!loading && visibleItems.length === 0 && (
+          <Alert variant="secondary">Ничего не найдено.</Alert>
+        )}
+
+        <div className="product-section">
+          {visibleItems.map((item) => (
+            <ReagentCard
+              key={item.id}
+              reagent={item}
+              onClick={() => navigate(buildReagentRoute(item.id))}
+              onAddToCart={() => handleAddToDraft(item.id)}
+            />
+          ))}
+        </div>
+
+        {!imageEmbedding && totalPages > 1 && (
+          <div className="d-flex flex-column align-items-center gap-2 mt-4 mb-4">
+            <div className="text-muted">Всего записей: {total}</div>
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={(nextPage) => dispatch(setCurrentPage(nextPage))}
+            />
+          </div>
+        )}
       </div>
     </>
   );

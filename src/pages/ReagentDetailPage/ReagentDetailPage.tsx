@@ -2,9 +2,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import type { FC } from "react";
 import { BreadCrumbs } from "../../components/BreadCrumbs/BreadCrumbs";
-import { Spinner, Button } from "react-bootstrap";
+import { Spinner, Button, Alert } from "react-bootstrap";
 import { ROUTES, ROUTE_LABELS, buildReagentRoute } from "../../Routes";
-import { getReagentById, getReagents } from "../../modules/api";
+import { getFeed, getReagentById, getReagents } from "../../modules/api";
 import type { Reagent } from "../../modules/types";
 import { ReagentCard } from "../../components/ReagentCard/ReagentCard";
 import { getMediaUrl } from "../../modules/media";
@@ -27,33 +27,27 @@ export const ReagentDetailPage: FC<ReagentDetailPageProps> = () => {
 
   useEffect(() => {
     if (!id) return;
-
     setLoading(true);
-
     getReagentById(id)
-      .then((data) => {
-        if (data) {
-          setReagent(data);
-        } else {
-          setReagent(null);
-        }
-      })
+      .then((data) => setReagent(data))
       .catch(() => setReagent(null))
       .finally(() => setLoading(false));
   }, [id]);
 
   useEffect(() => {
-    workerRef.current = new Worker(
-      new URL('../../workers/search.worker.ts', import.meta.url),
-      { type: 'module' }
-    );
+    getFeed()
+      .then(setFeedIds)
+      .catch(() => setFeedIds([]));
+  }, []);
+
+  useEffect(() => {
+    workerRef.current = new Worker(new URL('../../workers/search.worker.ts', import.meta.url), {
+      type: 'module',
+    });
 
     workerRef.current.onmessage = (e) => {
       const { type, data } = e.data;
-
-      if (type === 'similar_ready') {
-        setSimilarReagents(data);
-      }
+      if (type === 'similarready') setSimilarReagents(data);
     };
 
     return () => workerRef.current?.terminate();
@@ -63,7 +57,7 @@ export const ReagentDetailPage: FC<ReagentDetailPageProps> = () => {
     if (!reagent) return;
 
     getReagents()
-      .then((allReagents) => {
+      .then((allReagents) =>
         workerRef.current?.postMessage({
           type: 'similar',
           data: {
@@ -74,15 +68,19 @@ export const ReagentDetailPage: FC<ReagentDetailPageProps> = () => {
               formula: item.formula,
               img: item.img,
               price: item.price,
-              molar_mass: item.molar_mass,
+              molarmass: item.molarmass,
             })),
             currentId: reagent.id,
             limit: 3,
           },
-        });
-      })
+        }),
+      )
       .catch(() => setSimilarReagents([]));
   }, [reagent]);
+
+  const currentIndex = reagent ? feedIds.findIndex((feedId) => feedId === reagent.id) : -1;
+  const nextId =
+    currentIndex >= 0 && currentIndex < feedIds.length - 1 ? feedIds[currentIndex + 1] : null;
 
   if (loading) {
     return (
@@ -118,7 +116,7 @@ export const ReagentDetailPage: FC<ReagentDetailPageProps> = () => {
       <BreadCrumbs
         crumbs={[
           { label: ROUTE_LABELS.REAGENTS, path: ROUTES.REAGENTS },
-          { label: reagent.name || "Реагент" },
+          { label: reagent.name },
         ]}
       />
 
@@ -143,11 +141,27 @@ export const ReagentDetailPage: FC<ReagentDetailPageProps> = () => {
               <div className="detail-video-info">
                 <div className="detail-desc">{reagent.description}</div>
                 <div className="detail-desc">Формула: {reagent.formula}</div>
-                <div className="detail-desc">
-                  Молярная масса: {reagent.molar_mass} г/моль
+                <div className="detail-desc">Молярная масса: {reagent.molar_mass} г/моль
                 </div>
                 {reagent.price !== undefined && (
                   <div className="detail-desc">Цена: {reagent.price} ₽</div>
+                )}
+                <div className="d-flex gap-2 mt-3 flex-wrap">
+                  <Button className="back-button" onClick={() => navigate(-1)}>
+                    Назад
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => nextId && navigate(buildReagentRoute(nextId))}
+                    disabled={!nextId}
+                  >
+                    Далее
+                  </Button>
+                </div>
+                {currentIndex >= 0 && (
+                  <Alert variant="light" className="mt-3 mb-0">
+                    Позиция в персональной ленте: {currentIndex + 1} / {feedIds.length}
+                  </Alert>
                 )}
               </div>
             </div>
@@ -169,10 +183,6 @@ export const ReagentDetailPage: FC<ReagentDetailPageProps> = () => {
         </div>
       </div>
       )}
-
-      <Button className="back-button" onClick={() => navigate(-1)}>
-        Назад
-      </Button>
     </div>
   );
 };
