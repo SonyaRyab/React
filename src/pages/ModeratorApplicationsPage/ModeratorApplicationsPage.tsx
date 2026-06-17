@@ -172,12 +172,12 @@ const ModeratorApplicationsPage = () => {
             <Table striped bordered hover responsive>
               <thead>
                 <tr>
-                  <th>ID</th>
+                  <th>№</th>
                   <th>Тема</th>
                   <th>Статус</th>
                   <th>Исследователь</th>
                   <th>Температура</th>
-                  <th>Результат / объемы</th>
+                  <th>Результат (объемы), м3</th>
                   <th>Дата создания</th>
                   <th>Дата обновления</th>
                   <th>Действия</th>

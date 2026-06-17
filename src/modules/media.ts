@@ -1,13 +1,14 @@
-import { API_BASE } from "../api/config";
-
-const MINIO_BASE_URL = API_BASE;
+import { imgproxyaddr } from "../target_config";
 
 export function getMediaUrl(fileName?: string): string | undefined {
   if (!fileName) return undefined;
 
-  if (fileName.startsWith('http://') || fileName.startsWith('https://')) {
+  if (fileName.startsWith("http://") || fileName.startsWith("https://")) {
     return fileName;
   }
 
-  return `${MINIO_BASE_URL}/${fileName}`;
+  const cleanBase = imgproxyaddr.replace(/\/+$/, "");
+  const cleanPath = fileName.replace(/^\/+/, "");
+
+  return `${cleanBase}/${cleanPath}`;
 }

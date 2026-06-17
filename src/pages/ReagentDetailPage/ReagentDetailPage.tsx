@@ -24,6 +24,7 @@ export const ReagentDetailPage: FC<ReagentDetailPageProps> = () => {
   const [loading, setLoading] = useState(true);
   const [similarReagents, setSimilarReagents] = useState<Reagent[]>([]);  
   const workerRef = useRef<Worker | null>(null);
+  const [feedIds, setFeedIds] = useState<number[]>([]);
 
   useEffect(() => {
     if (!id) return;
@@ -134,8 +135,6 @@ export const ReagentDetailPage: FC<ReagentDetailPageProps> = () => {
                   playsInline
                   controls
                 >
-                {/* <source src={getMediaUrl(reagent.video)} type="video/mp4" /> */}
-                  {/* <source src="http://localhost:9000/logo/sabatier_reaction.mp4" type="video/mp4" /> */}
                 </video>
               
               <div className="detail-video-info">

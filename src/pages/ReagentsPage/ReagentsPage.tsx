@@ -202,7 +202,7 @@ export const ReagentsPage: FC = () => {
               onClick={openDraft}
               disabled={!appid || draftCount === 0}
             >
-              Черновик ({draftCount})
+              Заявка ({draftCount})
             </Button>
           </div>
         </div>
